@@ -13,8 +13,8 @@ import warnings; warnings.filterwarnings("ignore")
 from scipy.optimize import minimize
 
 # ── Physics (inline, stable coth, ratio caps from paper Fig.2) ───────────────
-R_OMEGA = 6.0   # 4× paper's omega_h/omega_c=1.5 → max η ≈ 1-1/6 = 0.833
-R_BETA  = 8.0   # 4× paper's beta_c/beta_h=2.0
+R_OMEGA = 7.0   # max on platform mesh → NV centres, Klatzow et al. PRL 2019
+R_BETA  = 25.0   # NV centres upper bound (Klatzow et al. PRL 2019)
 LAM_MAX = 0.2
 
 def coth(x):
@@ -59,7 +59,7 @@ def sample_valid(rng):
 WARM = np.array([8.0, 2.5, 2.0, 5.0, 0.05])
 
 # ── Config ───────────────────────────────────────────────────────────────────
-THRESHOLD = 0.75
+THRESHOLD = 0.80
 N_SEEDS   = 10
 BUDGET    = 1000
 

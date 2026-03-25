@@ -31,8 +31,8 @@ PLATFORMS = {
 }
 
 # ── Our benchmark choice ──────────────────────────────────────────────────────
-OUR_R_OMEGA = 6.0
-OUR_R_BETA  = 8.0
+OUR_R_OMEGA = 7.0  # mesh maximum
+OUR_R_BETA  = 25.0  # NV centres
 
 # ── Axis ranges — chosen to span all platform points with headroom ─────────────
 R_omega_max_plot = 8.5   # covers NV R_omega=7 with headroom
