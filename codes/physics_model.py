@@ -20,8 +20,8 @@ import warnings
 warnings.filterwarnings("ignore")
 
 # ─── Paper-anchored constraint caps (cite Fig. 2 of reference) ─────────────
-R_OMEGA_MAX = 3.0   # 2 × paper's omega_h/omega_c = 1.5  (image2)
-R_BETA_MAX  = 4.0   # 2 × paper's beta_c/beta_h   = 2.0  (image2)
+R_OMEGA_MAX = 7.0   # NV-centre maximum — Klatzow et al., PRL 2019
+R_BETA_MAX  = 25.0  # NV-centre spin-temperature range — Klatzow et al., PRL 2019
 LAM_MAX     = 0.2   # perturbation validity: anharmonic correction ≤ ~10%
 
 # Pilot-scan-derived minimum work (computed below in pilot_scan())
