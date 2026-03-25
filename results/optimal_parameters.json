@@ -1,0 +1,62 @@
+{
+  "Reference paper\n(Fig.2)": {
+    "R_omega": 1.5,
+    "R_beta": 2.0,
+    "color": "#95a5a6",
+    "cite": "Your reference paper, Fig. 2",
+    "eta_max": 0.3333333337091985,
+    "params": [
+      7.092929182231601,
+      4.621474290928174,
+      3.6705461674971005,
+      5.505819254349818,
+      1.1083170196249111e-17
+    ],
+    "eta_analytical": 0.33333333333333337
+  },
+  "Superconducting\nqubits": {
+    "R_omega": 2.0,
+    "R_beta": 6.0,
+    "color": "#e74c3c",
+    "cite": "Peterson et al., Nat. Commun. 2019",
+    "eta_max": 0.5000000000423324,
+    "params": [
+      8.445413236866523,
+      1.857295331339206,
+      4.348226042999989,
+      8.69645208673626,
+      7.1994586356133445e-19
+    ],
+    "eta_analytical": 0.5
+  },
+  "Trapped\nions": {
+    "R_omega": 4.0,
+    "R_beta": 12.0,
+    "color": "#2ecc71",
+    "cite": "Ro\u00dfnagel et al., Science 2016",
+    "eta_max": 0.7500000000025993,
+    "params": [
+      26.56925821018247,
+      2.922655434368331,
+      0.7598434402263423,
+      3.0393737609369698,
+      0.0
+    ],
+    "eta_analytical": 0.75
+  },
+  "NV centres\n(diamond)": {
+    "R_omega": 7.0,
+    "R_beta": 25.0,
+    "color": "#9b59b6",
+    "cite": "Klatzow et al., PRL 2019",
+    "eta_max": 0.857142857144602,
+    "params": [
+      30.0,
+      3.643110287934307,
+      0.5944760662887694,
+      4.161332464072213,
+      0.0
+    ],
+    "eta_analytical": 0.8571428571428572
+  }
+}
