@@ -278,8 +278,8 @@ while len(pts) < 2000:
 pts = np.array(pts); bc,bh,wc,wh,lam,et = pts.T
 
 fig, axes = plt.subplots(1,3,figsize=(15,5))
-fig.suptitle('Feasible Parameter Space (Constrained Domain)\n'
-             r'$\omega_h/\omega_c \leq 3$,  $\beta_c/\beta_h \leq 4$,  $\lambda \leq 0.2$',fontsize=12)
+fig.suptitle(f'Feasible Parameter Space (Constrained Domain)\n'
+             rf'$\omega_h/\omega_c \leq {R_OMEGA}$,  $\beta_c/\beta_h \leq {R_BETA}$,  $\lambda \leq {LAM_MAX}$',fontsize=12)
 for ax, (x,y,xl,yl) in zip(axes,[(wh/wc,et,r'$\omega_h/\omega_c$',r'$\eta$'),
                                    (bc/bh,et,r'$\beta_c/\beta_h$', r'$\eta$'),
                                    (lam,  et,r'$\lambda$',         r'$\eta$')]):
