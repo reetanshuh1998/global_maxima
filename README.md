@@ -310,7 +310,8 @@ anharmonic_otto_study/
 │   ├── run_cpc_benchmark.py          # 4-method benchmark + plots fig1–fig4 (one command)
 │   ├── find_optimal_parameters.py    # SLSQP finds eta_max for 4 platforms → JSON
 │   ├── verify_eta_max.py             # STANDALONE Eqs 8-10 verification (no shared imports)
-│   └── plot_constraint_justification.py   # fig5: eta_max vs R_omega/R_beta maps
+│   ├── plot_constraint_justification.py   # fig5: eta_max vs R_omega/R_beta maps
+│   └── plot_extra_figs.py            # fig8–fig10: Pareto, ECDF, and Validity
 ├── plots/
 │   ├── fig1_convergence.png          # Best-so-far η vs evaluations (median ± IQR)
 │   ├── fig2_threshold.png            # Evaluations + time to threshold
@@ -318,7 +319,10 @@ anharmonic_otto_study/
 │   ├── fig4_feasible_space.png       # Constrained feasible domain scatter
 │   ├── fig5_constraint_justification.png  # η_max = f(R_omega, R_beta) — 3 panels
 │   ├── fig6_platform_comparison.png  # Platform-specific eta_max comparison
-│   └── fig7_verification.png         # Independent verification figure
+│   ├── fig7_verification.png         # Independent verification figure
+│   ├── fig8_pareto_eta_work.png      # Work–Efficiency tradeoff (Pareto)
+│   ├── fig9_ecdf_evals.png           # ECDF of evaluations-to-threshold
+│   └── fig10_perturbation_validity.png # Perturbation validity diagnostic
 ├── results/
 │   ├── cpc_benchmark.json            # Raw benchmark data (all seeds, all methods)
 │   └── optimal_parameters.json       # Optimal (βc, βh, ωc, ωh, λ) per platform
@@ -346,6 +350,9 @@ python3 find_optimal_parameters.py
 
 # Step 4: Independently verify all results (generates fig7)
 python3 verify_eta_max.py
+
+# Step 5: Generate extra publication-quality plots (generates fig8–fig10)
+python3 plot_extra_figs.py
 ```
 
 All scripts are self-contained and write their outputs to `../results/` and `../plots/`.
