@@ -1,0 +1,878 @@
+%% ============================================================
+%%  ES-RL Technical Document
+%%  Evolution Strategies with RL-style Gradient Estimation
+%%  Compile in Overleaf (pdflatex, no bibtex needed — refs inline)
+%% ============================================================
+
+\documentclass[12pt, a4paper]{article}
+
+%% ── Packages ────────────────────────────────────────────────
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[margin=2.5cm, headheight=15pt]{geometry}
+
+%% Math
+\usepackage{amsmath, amssymb, amsthm, mathtools}
+
+%% Floats & tables
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+
+%% Algorithms
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\renewcommand{\algorithmicrequire}{\textbf{Require:}}
+
+%% Colours & boxes
+\usepackage[dvipsnames]{xcolor}
+\usepackage{tcolorbox}
+\tcbuselibrary{theorems, skins, breakable}
+
+%% Hyperlinks
+\usepackage[colorlinks=true,
+            linkcolor=MidnightBlue,
+            citecolor=ForestGreen,
+            urlcolor=MidnightBlue]{hyperref}
+
+%% Headers / footers
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\small ES-RL: Mathematical Derivation and Literature Review}
+\lhead{\small \leftmark}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+%% Section styling
+\usepackage{titlesec}
+\titleformat{\section}{\large\bfseries\color{MidnightBlue}}{{\thesection.}}{0.5em}{}[\titlerule]
+\titleformat{\subsection}{\normalsize\bfseries\color{MidnightBlue!80}}{{\thesubsection}}{0.5em}{}
+
+%% Theorem environments
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{remark}{Remark}[section]
+
+%% Coloured boxes
+\newtcolorbox{keyresult}[1][]{
+  enhanced, breakable,
+  colback=MidnightBlue!6, colframe=MidnightBlue!60,
+  fonttitle=\bfseries, title={Key Result}, #1
+}
+\newtcolorbox{importantbox}[1][]{
+  enhanced, breakable,
+  colback=ForestGreen!6, colframe=ForestGreen!60,
+  fonttitle=\bfseries, title={#1}
+}
+
+%% ── Math macros (safe names — no clashes) ───────────────────
+\newcommand{\bmu}{\boldsymbol{\mu}}
+\newcommand{\btheta}{\boldsymbol{\theta}}
+\newcommand{\beps}{\boldsymbol{\varepsilon}}
+\newcommand{\bx}{\mathbf{x}}
+\newcommand{\ghat}{\hat{\mathbf{g}}}     % gradient estimate
+\newcommand{\mvec}{\mathbf{m}}           % first moment
+\newcommand{\vvec}{\mathbf{v}}           % second moment
+\newcommand{\mhat}{\hat{\mathbf{m}}}     % bias-corrected first moment
+\newcommand{\vhat}{\hat{\mathbf{v}}}     % bias-corrected second moment
+\newcommand{\EE}{\mathbb{E}}
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\Cov}{\mathrm{Cov}}
+\newcommand{\RR}{\mathbb{R}}
+\newcommand{\NN}{\mathcal{N}}
+\newcommand{\cX}{\mathcal{X}}
+\DeclareMathOperator{\clip}{clip}
+
+%% ── Document ────────────────────────────────────────────────
+\begin{document}
+
+%% ── Title page ──────────────────────────────────────────────
+\begin{titlepage}
+  \centering
+  \vspace*{2cm}
+
+  {\Huge\bfseries\color{MidnightBlue}
+    Evolution Strategies\\[0.4em]
+    with RL-style Gradient Estimation\\[0.4em]
+    (ES-RL)
+  }
+
+  \vspace{0.8cm}
+  \rule{0.7\linewidth}{1.5pt}
+
+  \vspace{0.8cm}
+  {\LARGE\itshape
+    A Mathematical Derivation\\[0.3em]
+    and Literature Review
+  }
+
+  \vspace{1.5cm}
+  {\large\color{gray} Technical Document}
+
+  \vspace{3cm}
+
+  \begin{tcolorbox}[
+    enhanced, colback=gray!8, colframe=MidnightBlue!40,
+    width=0.85\linewidth, center, arc=4pt
+  ]
+    \textbf{Abstract.}
+    This document presents a self-contained mathematical exposition of the
+    Evolution Strategy with Reinforcement-Learning-style gradient estimation
+    (ES-RL) algorithm.
+    Starting from the first principles of stochastic optimisation, we derive
+    the score-function (REINFORCE) gradient estimator, motivate antithetic
+    sampling as a variance-reduction technique, and derive the Adam adaptive
+    moment update.
+    The complete ES-RL algorithm is assembled in a unified framework;
+    connections to natural evolution strategies and policy-gradient methods
+    are established; and convergence properties are summarised.
+    All results are anchored to primary literature references.
+  \end{tcolorbox}
+
+  \vfill
+  {\small Last compiled: \today}
+\end{titlepage}
+
+%% ── Table of Contents ───────────────────────────────────────
+\tableofcontents
+\newpage
+
+% ================================================================
+\section{Introduction and Motivation}
+\label{sec:intro}
+% ================================================================
+
+Classical gradient-based optimisation requires access to $\nabla f(\bx)$,
+either analytically or via automatic differentiation.
+In many scientifically and industrially important settings this is not possible:
+
+\begin{itemize}
+  \item The objective $f$ is a \textbf{black box}
+        (a physics simulation, an experiment, a quantum circuit).
+  \item $f$ is \textbf{non-differentiable} or \textbf{discontinuous}.
+  \item The search space involves \textbf{discrete decisions} mixed with
+        continuous parameters.
+  \item The computational graph is too large for backpropagation.
+\end{itemize}
+
+Evolution Strategies (ES) address all of these cases by estimating the
+gradient of a \emph{smoothed} version of $f$ using only function evaluations.
+The modern Reinforcement-Learning framing --- due primarily to
+\textbf{Salimans et al.\ (2017)} \cite{salimans2017} and
+\textbf{Wierstra et al.\ (2008, 2014)} \cite{wierstra2008, wierstra2014} ---
+reinterprets ES as a policy-gradient algorithm on the distribution of
+candidate solutions, enabling the use of powerful optimisers such as
+\textbf{Adam} \cite{kingma2015} developed for deep learning.
+
+% ================================================================
+\section{Problem Formulation}
+\label{sec:problem}
+% ================================================================
+
+We seek to \textbf{maximise} a scalar objective:
+\begin{equation}
+  \bx^{*} = \arg\max_{\bx \in \cX}\; f(\bx),
+\end{equation}
+where $f : \cX \subseteq \RR^d \to \RR$ may be \textbf{multimodal},
+\textbf{noisy}, and \textbf{non-differentiable}.
+Direct access to $\nabla f$ is \emph{not} assumed.
+
+\subsection{Smoothing via a Search Distribution}
+
+Rather than optimising $f$ directly, ES introduces a parametric family of
+probability distributions $\{p_{\btheta}\}_{\btheta}$ over $\cX$ and
+maximises the \textbf{expected fitness}:
+\begin{equation}
+  J(\btheta)
+  = \EE_{\bx \sim p_{\btheta}}\!\bigl[f(\bx)\bigr]
+  = \int_{\cX} f(\bx)\, p_{\btheta}(\bx)\, d\bx.
+  \label{eq:expected_fitness}
+\end{equation}
+$J(\btheta)$ is a \textbf{smoothed, everywhere differentiable}
+surrogate for $f$, even when $f$ itself is neither \cite{nesterov2017}.
+Maximising $J(\btheta)$ concentrates probability mass near $\bx^*$.
+
+\subsection{Isotropic Gaussian Search Distribution}
+
+Throughout this document we use the \textbf{isotropic Gaussian}:
+\begin{equation}
+  p_{\btheta}(\bx) = \NN\!\left(\bx;\; \bmu,\; \sigma^2 \mathbf{I}\right),
+\end{equation}
+where $\btheta = \bmu \in \RR^d$ is the only optimisable parameter
+(the \textbf{mean} of the search distribution) and
+$\sigma > 0$ is a fixed \textbf{exploration spread}.
+The goal reduces to:
+\begin{quote}
+  \itshape Find the $\bmu$ that maximises $J(\bmu)$.
+\end{quote}
+
+% ================================================================
+\section{Evolution Strategies: Historical Background}
+\label{sec:history}
+% ================================================================
+
+Evolution Strategies were introduced independently by
+\textbf{Rechenberg} (1965, published 1973 \cite{rechenberg1973}) and
+\textbf{Schwefel} (1965, published 1977 \cite{schwefel1977}) at the
+Technical University of Berlin.
+The original $(\mu,\lambda)$-ES:
+\begin{enumerate}
+  \item Generates $\lambda$ offspring from $\mu$ parents by adding Gaussian noise.
+  \item Ranks offspring by fitness.
+  \item Selects the $\rho$ best as the next generation's parents.
+  \item Repeats.
+\end{enumerate}
+Step-size self-adaptation was formalised by \textbf{Hansen and Ostermeier}
+in the Covariance Matrix Adaptation ES (CMA-ES) \cite{hansen2001}.
+The modern \textbf{differentiable ES / Natural ES} framing
+\cite{wierstra2008, wierstra2014} reinterprets the fitness-weighted
+selection step as gradient ascent on $J(\btheta)$, enabling any
+first-order optimiser.
+
+% ================================================================
+\section{The Score-Function Gradient Estimator}
+\label{sec:score}
+% ================================================================
+
+\subsection{Derivation: The Log-Derivative Trick}
+
+To perform gradient ascent on $J(\bmu)$ we need $\nabla_{\bmu} J$:
+\begin{equation}
+  \nabla_{\bmu} J(\bmu)
+  = \nabla_{\bmu} \int f(\bx)\, p_{\bmu}(\bx)\, d\bx.
+\end{equation}
+
+Under mild regularity conditions (Lebesgue dominated convergence)
+we may exchange the gradient and the integral:
+\begin{equation}
+  = \int f(\bx)\;\nabla_{\bmu} p_{\bmu}(\bx)\; d\bx.
+\end{equation}
+
+Applying the \textbf{log-derivative identity}
+\begin{equation}
+  \nabla_{\bmu} p_{\bmu}(\bx)
+  = p_{\bmu}(\bx)\;\nabla_{\bmu} \log p_{\bmu}(\bx)
+  \label{eq:logderiv}
+\end{equation}
+and substituting back, we obtain the \textbf{score-function estimator}:
+
+\begin{keyresult}
+  \begin{equation}
+    \nabla_{\bmu} J(\bmu)
+    = \EE_{\bx \sim p_{\bmu}}\!
+      \left[f(\bx)\cdot \nabla_{\bmu} \log p_{\bmu}(\bx)\right].
+    \label{eq:score}
+  \end{equation}
+\end{keyresult}
+
+\noindent
+This is also known as the \textbf{REINFORCE gradient} in reinforcement
+learning \cite{williams1992} and the \textbf{natural gradient direction}
+in natural evolution strategies \cite{wierstra2008, wierstra2014}.
+
+\begin{remark}
+  The right-hand side of \eqref{eq:score} is an expectation estimable by
+  Monte Carlo sampling --- requiring \emph{only function evaluations},
+  not analytic gradients of $f$.
+\end{remark}
+
+\subsection{Closed Form for the Isotropic Gaussian}
+
+For $p_{\bmu}(\bx) = \NN(\bx;\bmu,\sigma^2\mathbf{I})$:
+\begin{equation}
+  \log p_{\bmu}(\bx)
+  = -\tfrac{d}{2}\log(2\pi\sigma^2)
+    - \frac{\|\bx - \bmu\|^2}{2\sigma^2}.
+\end{equation}
+\begin{equation}
+  \nabla_{\bmu} \log p_{\bmu}(\bx)
+  = \frac{\bx - \bmu}{\sigma^2}
+  = \frac{\beps}{\sigma},
+  \qquad
+  \text{where } \bx = \bmu + \sigma\beps,\;
+  \beps \sim \NN(\mathbf{0}, \mathbf{I}).
+\end{equation}
+
+Substituting into \eqref{eq:score}:
+\begin{equation}
+  \nabla_{\bmu} J(\bmu)
+  = \frac{1}{\sigma}\;
+    \EE_{\beps \sim \NN(\mathbf{0},\mathbf{I})}
+    \!\left[f\!\left(\bmu + \sigma\beps\right)\cdot\beps\right].
+  \label{eq:gaussian_grad}
+\end{equation}
+
+\subsection{Monte Carlo Estimator}
+
+Using $H$ independent samples $\{\beps_i\}_{i=1}^{H}$:
+\begin{equation}
+  \hat{\mathbf{g}}_H
+  = \frac{1}{H\sigma}\sum_{i=1}^{H}
+    f\!\left(\bmu + \sigma\beps_i\right)\beps_i.
+  \label{eq:mc}
+\end{equation}
+
+\begin{proposition}[Unbiasedness]
+  $\EE\!\left[\hat{\mathbf{g}}_H\right] = \nabla_{\bmu} J(\bmu)$.
+\end{proposition}
+
+\noindent
+The variance scales as:
+\begin{equation}
+  \Var\!\left[\hat{\mathbf{g}}_H\right]
+  = \frac{1}{H\sigma^2}
+    \Var_{\beps}\!\left[f(\bmu+\sigma\beps)\,\beps\right]
+  = O\!\left(\tfrac{1}{H}\right),
+\end{equation}
+motivating the use of as many perturbations as the budget allows.
+
+% ================================================================
+\section{Antithetic Sampling: Variance Reduction}
+\label{sec:antithetic}
+% ================================================================
+
+\subsection{Motivation}
+
+The estimator \eqref{eq:mc} has variance $O(1/H)$.
+For finite $H$, individual estimates can be very noisy when $f$ is
+multimodal or when $\sigma$ is small relative to the scale of the landscape.
+
+\subsection{Antithetic Pairs}
+
+The \textbf{antithetic variates} method \cite{bratley1987} exploits the
+symmetry of the Gaussian by evaluating \textbf{symmetric pairs}
+$(\beps_i,-\beps_i)$:
+\begin{equation}
+  \hat{\mathbf{g}}_{\mathrm{anti}}
+  = \frac{1}{2H\sigma}\sum_{i=1}^{H}
+    \Bigl[f(\bmu+\sigma\beps_i) - f(\bmu-\sigma\beps_i)\Bigr]\,\beps_i.
+  \label{eq:antithetic}
+\end{equation}
+
+\subsection{Proof of Unbiasedness}
+
+\begin{proof}
+Since $\beps_i \overset{d}{=} -\beps_i$ (Gaussian symmetry):
+\begin{align}
+  \EE\!\left[\hat{\mathbf{g}}_{\mathrm{anti}}\right]
+  &= \frac{1}{2\sigma}
+     \EE\!\left[f(\bmu+\sigma\beps)\beps\right]
+   + \frac{1}{2\sigma}
+     \EE\!\left[-f(\bmu-\sigma\beps)\beps\right]
+  \nonumber\\
+  &= \frac{1}{2\sigma}
+     \EE\!\left[f(\bmu+\sigma\beps)\beps\right]
+   + \frac{1}{2\sigma}
+     \EE\!\left[f(\bmu+\sigma\beps)\beps\right]
+  \nonumber\\
+  &= \frac{1}{\sigma}
+     \EE\!\left[f(\bmu+\sigma\beps)\beps\right]
+   = \nabla_{\bmu} J(\bmu). \qquad\checkmark
+\end{align}
+The second equality uses the substitution $\beps \mapsto -\beps$,
+which leaves the Gaussian distribution invariant.
+\end{proof}
+
+\subsection{Variance Reduction Analysis}
+
+Let $A_i = f(\bmu+\sigma\beps_i)\varepsilon_i$ and
+$B_i = -f(\bmu-\sigma\beps_i)\varepsilon_i$.
+The antithetic estimate uses $(A_i+B_i)/2$ instead of $A_i$.
+For smooth $f$, a positive perturbation that yields a high value makes
+the mirror perturbation tend to yield a lower value; hence
+$\Cov(A_i,B_i)<0$, and:
+\begin{equation}
+  \Var\!\left[\frac{A_i+B_i}{2}\right]
+  = \frac{\Var[A_i]+\Var[B_i]+2\Cov(A_i,B_i)}{4}
+  < \frac{\Var[A_i]}{2}.
+\end{equation}
+
+\begin{keyresult}
+  Antithetic sampling \textbf{at least halves the estimator variance}
+  relative to one-sided sampling, at no extra cost in the number of
+  perturbation \emph{directions} $H$ (though $2H$ total evaluations
+  are required).
+\end{keyresult}
+
+\noindent
+This was demonstrated empirically by Salimans et al.\ \cite{salimans2017},
+who showed that antithetic sampling roughly doubles effective sample
+efficiency in high-dimensional problems.
+
+% ================================================================
+\section{The Adam Optimiser}
+\label{sec:adam}
+% ================================================================
+
+\subsection{Motivation}
+
+Applying the raw estimate $\hat{\mathbf{g}}$ in a fixed-step update
+$\bmu \leftarrow \bmu + \alpha\hat{\mathbf{g}}$ suffers from:
+\begin{itemize}
+  \item \textbf{Sensitivity to $\alpha$:}
+        too large $\Rightarrow$ oscillation; too small $\Rightarrow$ slow convergence.
+  \item \textbf{Non-stationarity:}
+        the optimal step size changes as $\bmu$ approaches the optimum.
+  \item \textbf{Noise amplification:}
+        estimates from a small batch of perturbations are inherently noisy.
+\end{itemize}
+\textbf{Adam} (Adaptive Moment Estimation) \cite{kingma2015} addresses all
+three by maintaining per-parameter running statistics of the gradient.
+
+\subsection{Derivation from Exponential Moving Averages}
+
+Let $\hat{\mathbf{g}}_t$ be the gradient estimate at step $t$.  Define:
+
+\medskip
+\noindent
+\textbf{First moment} (momentum):
+\begin{equation}
+  \mvec_t = \beta_1\,\mvec_{t-1} + (1-\beta_1)\,\hat{\mathbf{g}}_t,
+  \qquad \mvec_0 = \mathbf{0}.
+  \label{eq:m}
+\end{equation}
+
+\noindent
+\textbf{Second moment} (uncentred variance):
+\begin{equation}
+  \vvec_t = \beta_2\,\vvec_{t-1} + (1-\beta_2)\,\hat{\mathbf{g}}_t^{\,2},
+  \qquad \vvec_0 = \mathbf{0},
+  \label{eq:v}
+\end{equation}
+where $\beta_1,\beta_2\in[0,1)$ and squaring is elementwise.
+
+\subsection{Bias Correction}
+
+Unrolling \eqref{eq:m} from $\mvec_0=\mathbf{0}$:
+\begin{equation}
+  \mvec_t = (1-\beta_1)\sum_{i=1}^{t}\beta_1^{\,t-i}\,\hat{\mathbf{g}}_i.
+\end{equation}
+Taking expectations under the stationarity assumption
+$\EE[\hat{\mathbf{g}}_i]=\mathbf{g}$:
+\begin{equation}
+  \EE[\mvec_t]
+  = \mathbf{g}\,(1-\beta_1)\sum_{i=1}^{t}\beta_1^{\,t-i}
+  = \mathbf{g}\,(1-\beta_1^t).
+\end{equation}
+The estimate is \textbf{biased toward zero} by the factor $(1-\beta_1^t)$.
+Analogously, $\EE[\vvec_t] = \EE[\mathbf{g}^2]\,(1-\beta_2^t)$.
+We correct with:
+\begin{equation}
+  \mhat_t = \frac{\mvec_t}{1-\beta_1^t},
+  \qquad
+  \vhat_t = \frac{\vvec_t}{1-\beta_2^t},
+\end{equation}
+so that $\EE[\mhat_t]\approx\mathbf{g}$ and
+$\EE[\vhat_t]\approx\EE[\mathbf{g}^2]$.
+
+\subsection{The Update Rule}
+
+\begin{keyresult}
+  \begin{equation}
+    \bmu_{t+1}
+    = \bmu_t
+      + \alpha\cdot
+        \frac{\mhat_t}{\sqrt{\vhat_t}+\varepsilon},
+    \label{eq:adam}
+  \end{equation}
+  where $\varepsilon\approx10^{-8}$ prevents division by zero.
+\end{keyresult}
+
+\begin{table}[ht]
+  \centering
+  \caption{Interpretation of the Adam update terms.}
+  \label{tab:adam_terms}
+  \begin{tabular}{@{}lp{9.5cm}@{}}
+    \toprule
+    \textbf{Term} & \textbf{Role} \\
+    \midrule
+    $\mhat_t$ &
+      Smoothed gradient direction; reduces noise via momentum, suppresses
+      short-lived fluctuations. \\[4pt]
+    $\sqrt{\vhat_t}$ &
+      Running RMS of gradient magnitude; normalises the step size
+      per coordinate. \\[4pt]
+    $\alpha/\sqrt{\vhat_t}$ &
+      Per-parameter adaptive rate: smaller for high-gradient coordinates,
+      larger for low-gradient or infrequently-updated ones. \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Standard Hyperparameters}
+
+\begin{table}[ht]
+  \centering
+  \caption{Recommended Adam hyperparameters \cite{kingma2015}.}
+  \label{tab:adam_hyp}
+  \begin{tabular}{@{}ccc@{}}
+    \toprule
+    \textbf{Parameter} & \textbf{Typical value} & \textbf{Role} \\
+    \midrule
+    $\alpha$      & $10^{-3}$--$0.05$ & Global learning rate (primary tuning knob) \\
+    $\beta_1$     & $0.9$             & Momentum decay \\
+    $\beta_2$     & $0.999$           & RMS decay \\
+    $\varepsilon$ & $10^{-8}$         & Numerical stability \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+% ================================================================
+\section{The Complete ES-RL Algorithm}
+\label{sec:algorithm}
+% ================================================================
+
+\subsection{State Variables}
+
+\begin{table}[ht]
+  \centering
+  \caption{ES-RL state variables.}
+  \begin{tabular}{@{}lll@{}}
+    \toprule
+    \textbf{Variable} & \textbf{Dimension} & \textbf{Description} \\
+    \midrule
+    $\bmu$       & $d$     & Current mean of the search distribution \\
+    $\sigma$     & scalar  & Exploration spread (fixed) \\
+    $\mvec$      & $d$     & Adam first-moment accumulator \\
+    $\vvec$      & $d$     & Adam second-moment accumulator \\
+    $t$          & integer & Adam timestep counter \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{One Iteration}
+
+\noindent\textbf{Step 1 — Sample perturbations:}
+\begin{equation*}
+  \beps_1,\ldots,\beps_H \overset{i.i.d.}{\sim} \NN(\mathbf{0},\mathbf{I}_d).
+\end{equation*}
+
+\noindent\textbf{Step 2 — Evaluate antithetic pairs} ($2H$ evaluations):
+\begin{equation*}
+  f^+_i = f(\bmu+\sigma\beps_i),\quad
+  f^-_i = f(\bmu-\sigma\beps_i),\qquad i=1,\ldots,H.
+\end{equation*}
+
+\noindent\textbf{Step 3 — Gradient estimate} (eq.~\eqref{eq:antithetic}):
+\begin{equation*}
+  \hat{\mathbf{g}}
+  = \frac{1}{2H\sigma}\sum_{i=1}^{H}(f^+_i-f^-_i)\,\beps_i.
+\end{equation*}
+
+\noindent\textbf{Step 4 — Adam moment update:}
+\begin{equation*}
+  t\leftarrow t+1,\quad
+  \mvec\leftarrow\beta_1\mvec+(1-\beta_1)\hat{\mathbf{g}},\quad
+  \vvec\leftarrow\beta_2\vvec+(1-\beta_2)\hat{\mathbf{g}}^{\,2}.
+\end{equation*}
+
+\noindent\textbf{Step 5 — Bias correction:}
+\begin{equation*}
+  \mhat = \mvec/(1-\beta_1^t),\qquad
+  \vhat = \vvec/(1-\beta_2^t).
+\end{equation*}
+
+\noindent\textbf{Step 6 — Update mean:}
+\begin{equation*}
+  \bmu\leftarrow
+  \clip\!\left(
+    \bmu+\alpha\cdot\frac{\mhat}{\sqrt{\vhat}+\varepsilon},\;
+    \bx_{\min},\;\bx_{\max}
+  \right).
+\end{equation*}
+
+\subsection{Full Pseudocode}
+
+\begin{algorithm}[H]
+  \caption{ES-RL with Antithetic Sampling and Adam}
+  \label{alg:esrl}
+  \begin{algorithmic}[1]
+    \Require $f,\;\cX{=}[\bx_{\min},\bx_{\max}],\;
+             \sigma,\;H,\;\alpha,\;
+             \beta_1{=}0.9,\;\beta_2{=}0.999,\;
+             \varepsilon{=}10^{-8}$, budget $N$
+    \State $\bmu \leftarrow \text{random point in } \cX$
+    \State $\mvec\leftarrow\mathbf{0};\;
+           \vvec\leftarrow\mathbf{0};\;
+           t\leftarrow 0$
+           \Comment{Adam state}
+    \State $f^*\leftarrow-\infty;\;\bx^*\leftarrow\text{None}$
+    \While{evaluations $< N$}
+      \State Sample $\beps_1,\ldots,\beps_H \overset{i.i.d.}{\sim}
+             \NN(\mathbf{0},\mathbf{I})$
+      \For{$i=1,\ldots,H$}
+        \State $f^+_i\leftarrow f\!\left(\clip(\bmu+\sigma\beps_i,
+               \bx_{\min},\bx_{\max})\right)$
+        \State $f^-_i\leftarrow f\!\left(\clip(\bmu-\sigma\beps_i,
+               \bx_{\min},\bx_{\max})\right)$
+        \State Update $f^*,\bx^*$ if $\max(f^+_i,f^-_i)>f^*$
+      \EndFor
+      \State $\hat{\mathbf{g}}\leftarrow
+             \dfrac{1}{2H\sigma}\displaystyle\sum_{i=1}^{H}
+             (f^+_i-f^-_i)\,\beps_i$
+      \State $t\leftarrow t+1$
+      \State $\mvec\leftarrow\beta_1\mvec+(1-\beta_1)\hat{\mathbf{g}};\;
+             \vvec\leftarrow\beta_2\vvec+(1-\beta_2)\hat{\mathbf{g}}^2$
+      \State $\mhat\leftarrow\mvec/(1-\beta_1^t);\;
+             \vhat\leftarrow\vvec/(1-\beta_2^t)$
+      \State $\bmu\leftarrow\clip\!\bigl(
+             \bmu+\alpha\,\mhat/(\sqrt{\vhat}+\varepsilon),\,
+             \bx_{\min},\bx_{\max}\bigr)$
+    \EndWhile
+    \State\Return $\bx^*,f^*$
+  \end{algorithmic}
+\end{algorithm}
+
+% ================================================================
+\section{Convergence Analysis}
+\label{sec:convergence}
+% ================================================================
+
+\subsection{Relationship to Gaussian Smoothing}
+
+The expected fitness $J(\bmu)$ equals the Gaussian convolution of $f$:
+\begin{equation}
+  J(\bmu) = (f*\phi_\sigma)(\bmu),\qquad
+  \phi_\sigma(\bx) = \NN(\bx;\,\mathbf{0},\sigma^2\mathbf{I}).
+\end{equation}
+Nesterov and Spokoiny \cite{nesterov2017} showed that $J$ inherits Lipschitz
+smoothness from $f$: if $f$ is $L$-Lipschitz, then $J$ is $L$-Lipschitz
+and its gradient is $(L/\sigma)$-Lipschitz, guaranteeing convergence
+of gradient ascent on $J$.
+
+\subsection{Strongly Concave Case}
+
+For $J$ that is $\kappa$-strongly concave near the maximum, projected
+gradient ascent with step $\alpha$ converges geometrically \cite{bubeck2015}:
+\begin{equation}
+  J(\bmu^*)-J(\bmu_t)
+  \;\leq\;
+  (1-\alpha\kappa)^t\,\bigl[J(\bmu^*)-J(\bmu_0)\bigr].
+\end{equation}
+In practice $J$ inherits the multimodality of $f$ and convergence to a
+\emph{local} maximum is what is guaranteed.
+
+\subsection{Finite-Sample Rate (Non-Convex)}
+
+With $H$ antithetic pairs, the gradient estimate has variance $O(1/H)$.
+By the non-convex stochastic gradient theory \cite{bottou2018}:
+\begin{equation}
+  \frac{1}{T}\sum_{t=1}^{T}
+  \EE\!\left[\bigl\|\nabla J(\bmu_t)\bigr\|^2\right]
+  = O\!\left(\frac{1}{\sqrt{T}}+\frac{\sigma_g}{\sqrt{H}}\right),
+\end{equation}
+where $\sigma_g$ is the variance of one gradient sample.
+Larger $H$ tightens the bound.
+
+\subsection{Approximation Bias from $\sigma$}
+
+A Taylor expansion \cite{salimans2017} shows:
+\begin{equation}
+  \nabla_{\bmu}J(\bmu) = \nabla f(\bmu) + O(\sigma^2).
+\end{equation}
+Small $\sigma$: nearly unbiased, but high variance and inability to
+escape local maxima.
+Large $\sigma$: low variance but the smoothed surrogate may miss narrow
+peaks.
+This tension is the fundamental exploration--exploitation trade-off in ES.
+
+% ================================================================
+\section{Connections to Related Methods}
+\label{sec:connections}
+% ================================================================
+
+\subsection{REINFORCE (Williams, 1992)}
+
+Williams \cite{williams1992} derived the score-function estimator in
+reinforcement learning, where $f(\bx)$ is a \textbf{return} and
+$p_{\btheta}(\bx)$ is a \textbf{stochastic policy}:
+\begin{equation}
+  \hat{\mathbf{g}}_{\mathrm{REINFORCE}}
+  = \frac{1}{H}\sum_{i=1}^{H}
+    R(\tau_i)\,\nabla_{\btheta}\log\pi_{\btheta}(\tau_i).
+\end{equation}
+Substituting $R\equiv f$, $\pi_{\btheta}\equiv p_{\bmu}$,
+$\tau_i\equiv\bx_i$ recovers eq.~\eqref{eq:mc} exactly.
+ES-RL is a direct instantiation of REINFORCE with a Gaussian ``policy.''
+
+\subsection{Natural Evolution Strategies (NES)}
+
+Wierstra et al.\ \cite{wierstra2008, wierstra2014} proposed the
+\textbf{natural gradient} update:
+\begin{equation}
+  \bmu_{t+1} = \bmu_t + \alpha\,\mathbf{F}^{-1}(\bmu_t)\,\hat{\mathbf{g}},
+\end{equation}
+where $\mathbf{F}(\bmu)=\EE\!\bigl[(\nabla_{\bmu}\log p_{\bmu})
+(\nabla_{\bmu}\log p_{\bmu})^\top\bigr]$ is the Fisher information matrix.
+For the isotropic Gaussian $\mathbf{F}=\sigma^{-2}\mathbf{I}$, which
+simplifies to $\bmu_{t+1}=\bmu_t+(\alpha/\sigma)\hat{\mathbf{g}}_{\mathrm{norm}}$,
+removing the scale dependence on $\sigma$.
+
+\subsection{CMA-ES}
+
+CMA-ES \cite{hansen2001} adapts a full covariance matrix
+$\mathbf{C}$ giving second-order-like convergence at $O(d^2)$ cost per step.
+ES-RL with an isotropic Gaussian is a first-order $O(d)$ variant, trading
+convergence speed for scalability.
+
+% ================================================================
+\section{Summary and Practical Guidance}
+\label{sec:summary}
+% ================================================================
+
+\subsection{Algorithm in One Equation}
+
+\begin{importantbox}[ES-RL Update (complete)]
+  \begin{equation}
+    \bmu_{t+1}
+    = \clip\!\left(
+        \bmu_t
+        + \alpha\cdot
+          \frac{\mhat_t}{\sqrt{\vhat_t}+\varepsilon},\;
+        \bx_{\min},\;\bx_{\max}
+      \right),
+    \label{eq:full_update}
+  \end{equation}
+  where $\mhat_t$ and $\vhat_t$ are the bias-corrected Adam moments of
+  the antithetic gradient estimate \eqref{eq:antithetic}.
+\end{importantbox}
+
+\subsection{Hyperparameter Guidance}
+
+\begin{table}[ht]
+  \centering
+  \caption{ES-RL hyperparameter guidance.}
+  \label{tab:hyp}
+  \begin{tabular}{@{}p{3.5cm}p{3cm}p{7cm}@{}}
+    \toprule
+    \textbf{Hyperparameter} & \textbf{Recommended} & \textbf{Effect of increasing} \\
+    \midrule
+    $\sigma$ (spread) & 0.05--0.20 (fraction of domain) &
+      Better exploration; more approximation bias \\[3pt]
+    $H$ (pairs/step)  & 5--20 &
+      Lower gradient variance; more evaluations per step \\[3pt]
+    $\alpha$ (learning rate) & 0.01--0.10 &
+      Faster but potentially less stable convergence \\[3pt]
+    $\beta_1$ (momentum) & 0.9 (fixed) &
+      Smoother gradient direction \\[3pt]
+    $\beta_2$ (RMS decay) & 0.999 (fixed) &
+      More stable norm estimation \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{When ES-RL Outperforms Random Search}
+
+\textbf{ES-RL is advantageous when:}
+\begin{itemize}
+  \item The landscape has a \textbf{clear basin} around the optimum
+        (gradient signal is informative).
+  \item The \textbf{evaluation budget is limited} relative to domain size.
+  \item Dimensionality $d>1$ (random search needs
+        $O((1/p_\varepsilon)^{1/d})$ samples --- exponential in $d$).
+\end{itemize}
+
+\textbf{Random search remains competitive when:}
+\begin{itemize}
+  \item The landscape is \textbf{pathological} (needle-in-haystack;
+        gradient information is useless).
+  \item The domain is small or \textbf{1-dimensional} with modest budget.
+  \item \textbf{Global diversity} is more important than local convergence.
+\end{itemize}
+
+% ================================================================
+\section*{References}
+\addcontentsline{toc}{section}{References}
+% ================================================================
+
+\begin{thebibliography}{15}
+
+\bibitem{salimans2017}
+T.~Salimans, J.~Ho, X.~Chen, S.~Sidor, and I.~Sutskever,
+\newblock ``Evolution Strategies as a Scalable Alternative to Reinforcement
+  Learning,''
+\newblock \textit{arXiv:1703.03864}, OpenAI, 2017.
+
+\bibitem{wierstra2008}
+D.~Wierstra, T.~Forster, J.~Peters, and J.~Schmidhuber,
+\newblock ``Natural Evolution Strategies,''
+\newblock \textit{Proc.\ IEEE Congress on Evolutionary Computation (CEC)},
+  2008.
+
+\bibitem{wierstra2014}
+D.~Wierstra, T.~Forster, J.~Peters, and J.~Schmidhuber,
+\newblock ``Natural Evolution Strategies,''
+\newblock \textit{Journal of Machine Learning Research},
+  \textbf{15}: 949--980, 2014.
+
+\bibitem{kingma2015}
+D.~P.~Kingma and J.~Ba,
+\newblock ``Adam: A Method for Stochastic Optimization,''
+\newblock \textit{Proc.\ ICLR}, 2015.
+
+\bibitem{nesterov2017}
+Y.~Nesterov and V.~Spokoiny,
+\newblock ``Random Gradient-Free Minimization of Convex Functions,''
+\newblock \textit{Foundations of Computational Mathematics},
+  \textbf{17}(2): 527--566, 2017.
+
+\bibitem{rechenberg1973}
+I.~Rechenberg,
+\newblock \textit{Evolutionsstrategie: Optimierung technischer Systeme nach
+  Prinzipien der biologischen Evolution},
+\newblock Friedrich Frommann Verlag, Stuttgart, 1973.
+
+\bibitem{schwefel1977}
+H.-P.~Schwefel,
+\newblock \textit{Numerische Optimierung von Computer-Modellen mittels der
+  Evolutionsstrategie},
+\newblock Birkh\"{a}user, Basel, 1977.
+
+\bibitem{hansen2001}
+N.~Hansen and A.~Ostermeier,
+\newblock ``Completely Derandomized Self-Adaptation in Evolution Strategies,''
+\newblock \textit{Evolutionary Computation}, \textbf{9}(2): 159--195, 2001.
+
+\bibitem{williams1992}
+R.~J.~Williams,
+\newblock ``Simple Statistical Gradient-Following Algorithms for
+  Connectionist Reinforcement Learning,''
+\newblock \textit{Machine Learning}, \textbf{8}(3--4): 229--256, 1992.
+
+\bibitem{bratley1987}
+P.~Bratley, B.~L.~Fox, and L.~E.~Schrage,
+\newblock \textit{A Guide to Simulation}, 2nd~ed.
+\newblock Springer, New York, 1987.
+
+\bibitem{bubeck2015}
+S.~Bubeck,
+\newblock ``Convex Optimization: Algorithms and Complexity,''
+\newblock \textit{Foundations and Trends in Machine Learning},
+  \textbf{8}(3--4): 231--357, 2015.
+
+\bibitem{bottou2018}
+L.~Bottou, F.~E.~Curtis, and J.~Nocedal,
+\newblock ``Optimization Methods for Large-Scale Machine Learning,''
+\newblock \textit{SIAM Review}, \textbf{60}(2): 223--311, 2018.
+
+\bibitem{sutton2018}
+R.~S.~Sutton and A.~G.~Barto,
+\newblock \textit{Reinforcement Learning: An Introduction}, 2nd~ed.,
+\newblock MIT Press, 2018, Ch.~13.
+
+\bibitem{hansen2016}
+N.~Hansen,
+\newblock ``The CMA Evolution Strategy: A Tutorial,''
+\newblock \textit{arXiv:1604.00772}, 2016.
+
+\bibitem{graves2013}
+A.~Graves,
+\newblock ``Generating Sequences with Recurrent Neural Networks,''
+\newblock \textit{arXiv:1308.0850}, 2013.
+
+\end{thebibliography}
+
+\end{document}

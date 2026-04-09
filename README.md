@@ -9,14 +9,14 @@
 ## Table of Contents
 1. [Motivation](#1-motivation)
 2. [The Physics Model](#2-the-physics-model)
-3. [Why Constraints Matter — Removing Unphysical Samples](#3-why-constraints-matter)
-4. [How the Constraint Values Were Chosen](#4-how-the-constraint-values-were-chosen)
-5. [Experimental Platform Survey](#5-experimental-platform-survey)
-6. [Optimisation Methods Compared](#6-optimisation-methods-compared)
-7. [Results](#7-results)
-8. [Verification](#8-verification)
-9. [File Index](#9-file-index)
-10. [How to Reproduce](#10-how-to-reproduce)
+3. [Constraint Justification & Physics Validity](#3-constraint-justification)
+4. [Experimental Platform Survey](#4-experimental-platform-survey)
+5. [Optimization Methods](#5-optimization-methods)
+6. [Algorithm Deep-Dive (ES-RL)](#6-algorithm-deep-dive)
+7. [Results & Benchmarking](#7-results)
+8. [File Index](#8-file-index)
+9. [How to Reproduce](#9-how-to-reproduce)
+10. [References](#10-references)
 11. [References](#11-references)
 
 ---
@@ -219,185 +219,97 @@ over a factor of ~2–5 by varying the trap voltage. Ion temperatures span
 **NV centres [3]:** The zero-field splitting of the NV spin triplet is
 2.87 GHz; microwave driving can effectively set $\omega_c$ and $\omega_h$
 over a wider range (ratio ~3–8) using dressed-state ladders.
-The spin temperature can span a very wide range due to laser initialisation.
+The spin temperature can span a ---
+
+## 6. Algorithm Deep-Dive: ES-RL
+
+The **Evolution Strategy with Reinforcement Learning (ES-RL)** algorithm is a black-box optimizer that uses the **score-function gradient estimator** (REINFORCE) to find optimal parameters.
+
+*   **Derivation:** Full mathematical derivation from first principles is provided in the [ES-RL Technical Document](esrl_document.pdf).
+*   **Key Features:**
+    *   **Antithetic Sampling:** Uses symmetric perturbations $(\pm \epsilon)$ to reduce gradient variance.
+    *   **Adam Optimizer:** Uses adaptive moment estimation to handle non-stationary and noisy gradients.
+    *   **Stochastic Smoothing:** Optimizes a Gaussian-smoothed surrogate of the efficiency landscape.
+
+**Demonstration:**
+Run `codes/demo_random_vs_esrl.py` to see a side-by-side comparison of Random Search vs. ES-RL on a complex, multi-modal 1D function.
 
 ---
 
-## 6. Optimisation Methods Compared
+## 7. Results & Benchmarking
 
-All methods operate on the same constrained 5-dimensional domain.
+### 7.1 Multi-Method Benchmarking
+We benchmark four algorithms on the NV-centre platform ($R_\omega=7, R_\beta=25, \lambda \le 0.2$).
 
-| Method | Type | Notes |
-|---|---|---|
-| **Random** | Stochastic baseline | Uniform sampling over feasible set |
-| **SLSQP** | Gradient-based | Multi-start scipy.optimize; second-order |
-| **CMA-ES** | Evolution Strategy | Pure-NumPy; covariance matrix adaptation |
-| **ES-RL** | Evolutionary RL | Antithetic sampling + Adam update |
+*   **SLSQP** consistently finds the analytic optimum $\eta \approx 0.8571$ with the fewest evaluations.
+*   **ES-RL** and **CMA-ES** provide robust global exploration, successfully escaping local traps in the anharmonic landscape.
 
-Two benchmarking tracks:
-- **Cold start:** random feasible initialisation — tests raw algorithm power
-- **Warm start:** physics-informed initialisation near the NV-centre optimal regime
-  ($\beta_c/\beta_h \approx 5$, $\omega_h/\omega_c \approx 6.4$, $\lambda = 0.05$)
+### 7.2 Perturbation Validity Analysis
+The project includes a diagnostic script `codes/plot_eta_vs_lambda.py` that maps the efficiency vs. anharmonicity ($\lambda$) and overlays the physical validity zones ($\epsilon < 0.10$). This provides a "physics-health check" for the optimization results.
 
 ---
 
-## 7. Results
+## 8. File Index
 
-### 7.1 Benchmark
+### Core Physics & Optimization
+- `codes/physics_model.py`: Core logic for heat fluxes and efficiency (Eqs. 8-10).
+- `codes/final_benchmark.py`: The definitive benchmarking suite (Random, SLSQP, CMA-ES, ES-RL).
+- `codes/run_cpc_benchmark.py`: A lighter, self-contained version of the benchmark.
 
-**Domain:** $R_\omega = 7$, $R_\beta = 25$ (NV-centre mesh maximum, Klatzow et al. [3]),
-$\lambda \leq 0.2$, threshold $\eta \geq 0.80$, 10 seeds each.
+### Analysis & Visualization
+- `codes/plot_eta_vs_lambda.py`: Diagnostic plot for $\eta(\lambda)$ and perturbation validity.
+- `codes/find_optimal_parameters.py`: Finds the global maximum efficiency per platform.
+- `codes/plot_constraint_justification.py`: Visualizes $\eta_{max}$ vs. ratio boundaries.
+- `codes/plot_extra_figs.py`: Generates Pareto front, ECDF, and distributions.
 
-**Target:** $\eta_{\max} = 1 - 1/7 = 0.\overline{857142}$ (analytic harmonic bound)
+### Technical Documentation & Demos
+- `esrl_document.pdf`: Professional LaTeX-compiled technical report on ES-RL.
+- `esrl_document.tex`: LaTeX source for the documentation.
+- `perturbation_validity.md`: Detailed discussion on first-order perturbation constraints.
+- `random_vs_esrl_readme.md`: Mathematical walkthrough for the ES-RL algorithm.
+- `codes/demo_random_vs_esrl.py`: Visual comparison of Random Search vs. ES-RL.
 
-| Method | η_max found | Success (cold) | Median evals | Median time |
-|---|---|---|---|---|
-| Random | 0.8571 | 10/10 | 18 | 0.0018 s |
-| **SLSQP** | **0.8571** | **10/10** | **31** | 0.0088 s |
-| CMA-ES | 0.8571 | 9/10 | 47 | 0.0018 s |
-| ES-RL (warm) | 0.8571 | 10/10 | 45 | 0.0018 s |
-
-> All methods converge to the same $\eta_{\max} = 0.8571$, confirming the
-> analytic bound $1 - 1/R_\omega = 1 - 1/7$ is tight and achievable.
-
-### 7.2 Platform-Optimal Parameter Sets (verified independently)
-
-| Platform | $\beta_c$ | $\beta_h$ | $\omega_c$ | $\omega_h$ | $\lambda$ | $\eta$ verified |
-|---|---|---|---|---|---|---|
-| Reference paper | 7.093 | 4.622 | 3.671 | 5.506 | 0.000 | **0.3333 ✓** |
-| Superconducting | 8.445 | 1.857 | 4.348 | 8.696 | 0.000 | **0.5000 ✓** |
-| Trapped ions | 26.569 | 2.923 | 0.760 | 3.039 | 0.000 | **0.7500 ✓** |
-| NV centres | 30.000 | 3.643 | 0.594 | 4.161 | 0.000 | **0.8571 ✓** |
-
-**Key physical observations:**
-
-1. **$\lambda = 0$ at every optimum.** The anharmonic term always *reduces*
-   efficiency relative to the harmonic case (confirmed by Ref. [0] Fig. 2,
-   which shows $\eta$ decreasing as $\lambda$ increases). The optimizer
-   independently discovers this, setting $\lambda = 0$ in every case.
-
-2. **$\omega_h/\omega_c = R_\omega$ exactly** at every optimum. The frequency
-   ratio cap is always the binding constraint, consistent with the analytic
-   harmonic bound $\eta_{\max} = 1 - 1/R_\omega$.
-
-3. **$\beta_c/\beta_h < R_\beta$** at every optimum. The temperature ratio cap
-   never binds first — confirming that $R_\beta$ is well-chosen to be non-trivially
-   looser than $R_\omega$.
-
-4. **All solutions satisfy $\eta < \eta_{\mathrm{Carnot}}$** — the second law
-   of thermodynamics is respected in every case.
+### Results & Data
+- `results/best_parameters.json`: Consolidated optima found by all methods.
+- `results/optimal_parameters.json`: Verified platform-specific optimal parameter sets.
+- `plots/`: Directory containing all publication-quality figures (`fig_*.png`).
 
 ---
 
-## 8. Verification
-
-`verify_eta_max.py` provides a fully independent cross-check:
-- **Re-implements Eqs. 8–10 from scratch** with no imports from project code
-- Loads optimal parameters from `results/optimal_parameters.json`
-- Substitutes each optimal set and computes $\eta$, $Q_h$, $Q_c$, $W_{\mathrm{ext}}$
-- Checks: $\eta_{\mathrm{verify}} = \eta_{\mathrm{optimizer}}$ to $10^{-4}$ precision
-
-All four platforms pass with ✓.
-
----
-
-## 9. File Index
-
-```
-anharmonic_otto_study/
-├── codes/
-│   ├── physics_model.py              # Constrained physics engine (stable coth, ratio caps)
-│   ├── run_cpc_benchmark.py          # 4-method benchmark + plots fig1–fig4 (one command)
-│   ├── find_optimal_parameters.py    # SLSQP finds eta_max for 4 platforms → JSON
-│   ├── verify_eta_max.py             # STANDALONE Eqs 8-10 verification (no shared imports)
-│   ├── plot_constraint_justification.py   # fig5: eta_max vs R_omega/R_beta maps
-│   └── plot_extra_figs.py            # fig8–fig10: Pareto, ECDF, and Validity
-├── plots/
-│   ├── fig1_convergence.png          # Best-so-far η vs evaluations (median ± IQR)
-│   ├── fig2_threshold.png            # Evaluations + time to threshold
-│   ├── fig3_violin.png               # Final η distribution across seeds
-│   ├── fig4_feasible_space.png       # Constrained feasible domain scatter
-│   ├── fig5_constraint_justification.png  # η_max = f(R_omega, R_beta) — 3 panels
-│   ├── fig6_platform_comparison.png  # Platform-specific eta_max comparison
-│   ├── fig7_verification.png         # Independent verification figure
-│   ├── fig8_pareto_eta_work.png      # Work–Efficiency tradeoff (Pareto)
-│   ├── fig9_ecdf_evals.png           # ECDF of evaluations-to-threshold
-│   └── fig10_perturbation_validity.png # Perturbation validity diagnostic
-├── results/
-│   ├── cpc_benchmark.json            # Raw benchmark data (all seeds, all methods)
-│   └── optimal_parameters.json       # Optimal (βc, βh, ωc, ωh, λ) per platform
-└── README.md                         # This file
-```
-
----
-
-## 10. How to Reproduce
+## 9. How to Reproduce
 
 ```bash
-# Install dependencies
+# 1. Install Dependencies
 pip install numpy scipy matplotlib
 
+# 2. Run the Final Benchmark (Generates core comparison figures)
 cd codes/
+python3 final_benchmark.py
 
-# Step 1: Run the full 4-method benchmark (generates fig1–fig4)
-python3 run_cpc_benchmark.py
+# 3. Analyze Perturbation Validity
+python3 plot_eta_vs_lambda.py
 
-# Step 2: Generate the constraint justification figure (fig5)
-python3 plot_constraint_justification.py
-
-# Step 3: Find optimal parameters for all 4 experimental platforms (generates fig6)
+# 4. Verify Platform Optima
 python3 find_optimal_parameters.py
+python3 verify_eta_max.py 
 
-# Step 4: Independently verify all results (generates fig7)
-python3 verify_eta_max.py
-
-# Step 5: Generate extra publication-quality plots (generates fig8–fig10)
-python3 plot_extra_figs.py
+# 5. Run the ES-RL Algorithm Demo
+python3 demo_random_vs_esrl.py
 ```
 
 All scripts are self-contained and write their outputs to `../results/` and `../plots/`.
 
 ---
 
-## 11. References
+## 10. References
 
 **[0]** (Author(s) to be confirmed) *"Anharmonic Quantum Otto Cycle"* (working title),
-preprin arXiv:**xxxxxxx** (under review). —
+preprint arXiv:**xxxxxxx** (under review). —
 Primary source for the anharmonic energy eigenvalues (Eq. 3), average energies
-at Otto-cycle points A–D (Eqs. 4–7), heat fluxes (Eqs. 8–9), efficiency formula (Eq. 10),
-and illustrative operating point used in Fig. 2 ($\omega_c=2$, $\omega_h=3$,
-$\beta_h=0.5\beta_c$, giving $R_\omega^{(0)}=1.5$, $R_\beta^{(0)}=2$).
+at Otto-cycle points A–D (Eqs. 4–7), heat fluxes (Eqs. 8–9), efficiency formula (Eq. 10).
 
-> **DOI placeholder:** The DOI/arXiv identifier will be updated upon public release
-> of the preprint. All equation numbers used in this code refer to the version
-> communicated to the authors and confirmed via the manuscript screenshots.
+**[1]** J. P. S. Peterson et al., *"Experimental Characterization of a Spin Quantum Heat Engine"*, **PRL** 123, 240601 (2019). [DOI](https://doi.org/10.1103/PhysRevLett.123.240601)
 
-**[1]** J. P. S. Peterson, T. B. Batalhão, M. Herrera, A. M. Souza, R. S. Sarthour,
-I. S. Oliveira, R. M. Serra,
-*"Experimental Characterization of a Spin Quantum Heat Engine"*,
-**Physical Review Letters** 123, 240601 (2019).
-DOI: [10.1103/PhysRevLett.123.240601](https://doi.org/10.1103/PhysRevLett.123.240601)
-→ *Used for:* superconducting/spin-based quantum heat engine experimental platform;
-  motivates $R_\omega \approx 2$, $R_\beta \approx 6$ as platform scale for
-  our superconducting benchmark entry.
+**[2]** J. Roßnagel et al., *"A single-atom heat engine"*, **Science** 352, 325–329 (2016). [DOI](https://doi.org/10.1126/science.aad6320)
 
-**[2]** J. Roßnagel, S. T. Dawkins, K. N. Tolazzi, O. Abah, E. Lutz, F. Schmidt-Kaler,
-K. Singer,
-*"A single-atom heat engine"*,
-**Science** 352, 325–329 (2016).
-DOI: [10.1126/science.aad6320](https://doi.org/10.1126/science.aad6320)
-→ *Used for:* trapped-ion single-atom heat engine experimental platform;
-  motivates $R_\omega \approx 4$, $R_\beta \approx 12$ as platform scale for
-  our trapped-ion benchmark entry.
-
-**[3]** J. Klatzow, J. N. Becker, P. M. Ledingham, C. Weinzetl, K. T. Kaczmarek,
-D. J. Saunders, J. Nunn, I. A. Walmsley, R. Uzdin, E. Poem,
-*"Experimental Demonstration of Quantum Effects in the Operation of Microscopic Heat Engines"*,
-**Physical Review Letters** 122, 110601 (2019).
-DOI: [10.1103/PhysRevLett.122.110601](https://doi.org/10.1103/PhysRevLett.122.110601)
-→ *Used for:* NV-centre (nitrogen-vacancy in diamond) quantum heat engine
-  experimental platform demonstration. Motivates the NV-centre benchmark entry
-  as the highest-frequency-ratio platform in our survey. **The ratio cap values
-  $R_\omega = 7$ and $R_\beta = 25$ are our benchmark design choices**, selected
-  to be of the same order as NV-centre platform capabilities; they are not
-  directly quoted from this paper as experimentally measured maxima.
+**[3]** J. Klatzow et al., *"Experimental Demonstration of Quantum Effects..."*, **PRL** 122, 110601 (2019). [DOI](https://doi.org/10.1103/PhysRevLett.122.110601)

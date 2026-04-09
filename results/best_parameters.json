@@ -1,0 +1,84 @@
+{
+  "Random": {
+    "eta_max": 0.8565211633671422,
+    "eta_median": 0.8552594378102807,
+    "eta_std": 0.0016940955777612686,
+    "success_rate": 1.0,
+    "med_evals_to_threshold": 20,
+    "med_time_to_threshold": 0.0017590890001883963,
+    "best_params": {
+      "beta_c": 29.37058357324141,
+      "beta_h": 1.491686513504028,
+      "omega_c": 2.6475029079656087,
+      "omega_h": 18.494143852774116,
+      "lambda": 0.028191643970766567
+    },
+    "eps_cold_at_best": 0.0011393898021897118,
+    "eps_hot_at_best": 3.3425581501761134e-06,
+    "analytic_bound": 0.8571428571428572
+  },
+  "SLSQP": {
+    "eta_max": 0.8571428571428572,
+    "eta_median": 0.8571428571428572,
+    "eta_std": 3.031524229741984e-14,
+    "success_rate": 1.0,
+    "med_evals_to_threshold": 7,
+    "med_time_to_threshold": 0.0017978270007006358,
+    "best_params": {
+      "beta_c": 20.484254970381837,
+      "beta_h": 2.1193314583927587,
+      "omega_c": 2.119273503442642,
+      "omega_h": 14.834914524098494,
+      "lambda": 0.0
+    },
+    "eps_cold_at_best": 0.0,
+    "eps_hot_at_best": 0.0,
+    "analytic_bound": 0.8571428571428572
+  },
+  "CMA-ES": {
+    "eta_max": 0.8571368950907586,
+    "eta_median": 0.8563671161887617,
+    "eta_std": 0.22148140187912715,
+    "success_rate": 0.8,
+    "med_evals_to_threshold": 159,
+    "med_time_to_threshold": 0.003369241999280348,
+    "best_params": {
+      "beta_c": 0.5,
+      "beta_h": 0.05,
+      "omega_c": 4.285893147277241,
+      "omega_h": 30.0,
+      "lambda": 0.0
+    },
+    "eps_cold_at_best": 0.0,
+    "eps_hot_at_best": 0.0,
+    "analytic_bound": 0.8571428571428572
+  },
+  "ES-RL": {
+    "eta_max": 0.8562998163320388,
+    "eta_median": 0.8529948745008739,
+    "eta_std": 0.2791673875088379,
+    "success_rate": 0.8666666666666667,
+    "med_evals_to_threshold": 105,
+    "med_time_to_threshold": 0.00227300199912861,
+    "best_params": {
+      "beta_c": 15.648393917563617,
+      "beta_h": 2.036746863991381,
+      "omega_c": 2.578270276514831,
+      "omega_h": 18.01117906784163,
+      "lambda": 0.04417832985420128
+    },
+    "eps_cold_at_best": 0.0019332375909210946,
+    "eps_hot_at_best": 5.670797312083106e-06,
+    "analytic_bound": 0.8571428571428572
+  },
+  "_meta": {
+    "R_omega": 7.0,
+    "R_beta": 25.0,
+    "LAM_MAX": 0.2,
+    "N_seeds": 15,
+    "budget": 1500,
+    "threshold": 0.8,
+    "global_best_eta": 0.8571428571428572,
+    "global_best_method": "SLSQP"
+  }
+}
