@@ -245,7 +245,21 @@ We benchmark four algorithms on the NV-centre platform ($R_\omega=7, R_\beta=25,
 *   **ES-RL** and **CMA-ES** provide robust global exploration, successfully escaping local traps in the anharmonic landscape.
 
 ### 7.2 Perturbation Validity Analysis
-The project includes a diagnostic script `codes/plot_eta_vs_lambda.py` that maps the efficiency vs. anharmonicity ($\lambda$) and overlays the physical validity zones ($\epsilon < 0.10$). This provides a "physics-health check" for the optimization results.
+The diagnostic script `codes/plot_eta_vs_lambda.py` maps $\eta(\lambda)$ and overlays physical validity zones ($\varepsilon < 0.10$), providing a "physics-health check" for the optimization results.
+
+### 7.3 Anharmonicity Effect: $\eta(\lambda)$ in the Physical Region
+The script `codes/eta_vs_lambda_physical.py` plots $\eta$ as a function of $\lambda \in [0, 0.2]$ for each set of optimal parameters. The plot uses **parameter values** (not platform names) in the legend and places the legend outside the axes. Key finding:
+- For low-frequency parameters ($\omega_c \approx 0.59$), $\eta$ drops by ~$22\%$ over the physical region.
+- For high-frequency parameters ($\omega_c \approx 4.35$), $\eta$ is essentially flat (anharmonic term suppressed by $1/\omega^2$).
+
+### 7.4 Refrigerator Mode (COP Study)
+A dedicated study of the **refrigerator mode** ($Q_c \ge 0$, $Q_h \le 0$, $W \le 0$) is located in the `refrigerator/` directory. Three operating regimes are characterized:
+- **Maximum COP**: Approaches the Carnot limit but at vanishing cooling power.
+- **Maximum Cooling Power ($Q_c$)**: Peak heat-extraction rate with COP $\approx 0.09$.
+- **Maximum $\chi = Q_c \times \text{COP}$**: The balanced trade-off operating point.
+
+Literature alignment: results are consistent with O. Abah & E. Lutz, arXiv:1902.10616 — anharmonicity enhances refrigerator COP.
+
 
 ---
 
@@ -257,10 +271,19 @@ The project includes a diagnostic script `codes/plot_eta_vs_lambda.py` that maps
 - `codes/run_cpc_benchmark.py`: A lighter, self-contained version of the benchmark.
 
 ### Analysis & Visualization
-- `codes/plot_eta_vs_lambda.py`: Diagnostic plot for $\eta(\lambda)$ and perturbation validity.
-- `codes/find_optimal_parameters.py`: Finds the global maximum efficiency per platform.
+- `codes/plot_eta_vs_lambda.py`: Diagnostic $\eta(\lambda)$ plot with perturbation validity overlay.
+- `codes/eta_vs_lambda_physical.py`: Clean $\eta$ vs $\lambda$ over the physical region [0, 0.2]; legend shows parameter values.
+- `codes/find_optimal_parameters.py`: Finds the global maximum efficiency per parameter set.
 - `codes/plot_constraint_justification.py`: Visualizes $\eta_{max}$ vs. ratio boundaries.
 - `codes/plot_extra_figs.py`: Generates Pareto front, ECDF, and distributions.
+
+### Refrigerator Mode
+- `refrigerator/physics_model.py`: Core COP formulas ($\text{COP} = Q_c / |W|$) with refrigerator feasibility checks.
+- `refrigerator/benchmark.py`: Three-objective search (Max COP, Max $Q_c$, Max $\chi$).
+- `refrigerator/verify_refrigerator.py`: Verification that all optima satisfy $\text{COP} \le \text{COP}_\text{Carnot}$.
+- `refrigerator/plots_generator.py`: COP–Power trade-off and anharmonicity enhancement plots.
+- `refrigerator/results/refrigerator_optima.json`: Consolidated refrigerator optima.
+
 
 ### Technical Documentation & Demos
 - `esrl_document.pdf`: Professional LaTeX-compiled technical report on ES-RL.
@@ -286,18 +309,27 @@ pip install numpy scipy matplotlib
 cd codes/
 python3 final_benchmark.py
 
-# 3. Analyze Perturbation Validity
+# 3. η vs λ in the physical region [0, 0.2]
+python3 eta_vs_lambda_physical.py
+
+# 4. Full perturbation validity diagnostic
 python3 plot_eta_vs_lambda.py
 
-# 4. Verify Platform Optima
+# 5. Verify Platform Optima
 python3 find_optimal_parameters.py
-python3 verify_eta_max.py 
+python3 verify_eta_max.py
 
-# 5. Run the ES-RL Algorithm Demo
+# 6. Run the ES-RL Algorithm Demo
 python3 demo_random_vs_esrl.py
+
+# 7. Run the Refrigerator Mode Study
+cd ../refrigerator/
+python3 benchmark.py
+python3 verify_refrigerator.py
+python3 plots_generator.py
 ```
 
-All scripts are self-contained and write their outputs to `../results/` and `../plots/`.
+All scripts are self-contained and write outputs to `../results/` and `../plots/` (or `refrigerator/results/` and `refrigerator/plots/`).
 
 ---
 
