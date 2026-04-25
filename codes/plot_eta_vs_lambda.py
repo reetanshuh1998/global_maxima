@@ -125,7 +125,7 @@ C_RED    = '#fadbd8'   # ε > 0.30  — perturbation broken
 # ─────────────────────────────────────────────────────────────────────────────
 fig, axes = plt.subplots(1, 2, figsize=(15, 6.5))
 fig.suptitle(
-    r'Efficiency $\eta(\lambda)$ and Perturbation Validity $\varepsilon(\lambda)$'
+    r'Efficiency $\eta(\alpha)$ and Perturbation Validity $\varepsilon(\alpha)$'
     '\n'
     r'(Optimal $\beta_c, \beta_h, \omega_c, \omega_h$ fixed at NV-centre optimum, '
     rf'$\eta_\mathrm{{max}}={OPT_ETA:.4f}$)',
@@ -147,15 +147,15 @@ for xl, xr, color in [
 
 # η curve (left axis)
 ax1.plot(lam_arr, eta_arr, color='#2980b9', lw=2.5, zorder=5,
-         label=r'$\eta(\lambda)$')
+         label=r'$\eta(\alpha)$')
 ax1.axhline(OPT_ETA, ls=':', color='#2980b9', lw=1.2, alpha=0.6,
             label=rf'$\eta_0 = {OPT_ETA:.4f}$ (harmonic limit)')
 
 # ε curves (right axis)
 ax1r.plot(lam_arr, ec_arr, color='#e74c3c', lw=2.0, ls='--', zorder=6,
-          label=r'$\varepsilon_\mathrm{cold}(\lambda)$')
+          label=r'$\varepsilon_\mathrm{cold}(\alpha)$')
 ax1r.plot(lam_arr, eh_arr, color='#27ae60', lw=2.0, ls='-.', zorder=6,
-          label=r'$\varepsilon_\mathrm{hot}(\lambda)$')
+          label=r'$\varepsilon_\mathrm{hot}(\alpha)$')
 
 # threshold horizontal lines on ε axis
 for thresh, ls, label in [
@@ -167,17 +167,17 @@ for thresh, ls, label in [
 
 # vertical cutoff lines
 for lam_cut, label, color in [
-    (lam_1pct,  rf'$\lambda_{{1\%}}={lam_1pct:.3f}$',  '#27ae60'),
-    (lam_10pct, rf'$\lambda_{{10\%}}={lam_10pct:.3f}$','#e67e22'),
-    (lam_30pct, rf'$\lambda_{{30\%}}={lam_30pct:.3f}$','#c0392b'),
+    (lam_1pct,  rf'$\alpha_{{1\%}}={lam_1pct:.3f}$',  '#27ae60'),
+    (lam_10pct, rf'$\alpha_{{10\%}}={lam_10pct:.3f}$','#e67e22'),
+    (lam_30pct, rf'$\alpha_{{30\%}}={lam_30pct:.3f}$','#c0392b'),
 ]:
     ax1.axvline(lam_cut, ls=':', color=color, lw=1.5, zorder=4)
     ax1.text(lam_cut + lam_max_plot*0.012, 0.01, label,
              color=color, fontsize=8.5, va='bottom', rotation=90, zorder=7)
 
-ax1.set_xlabel(r'$\lambda$ (anharmonicity)', fontsize=13)
+ax1.set_xlabel(r'$\alpha$ (anharmonicity)', fontsize=13)
 ax1.set_ylabel(r'$\eta$ (efficiency)', fontsize=13, color='#2980b9')
-ax1r.set_ylabel(r'$\varepsilon = \frac{3\lambda}{4\omega^3}\coth\!\left(\frac{\beta\omega}{2}\right)$',
+ax1r.set_ylabel(r'$\varepsilon = \frac{3\alpha}{4\omega^3}\coth\!\left(\frac{\beta\omega}{2}\right)$',
                 fontsize=12, color='#7f8c8d')
 ax1.set_xlim(0, lam_max_plot)
 ax1.set_ylim(bottom=0)
@@ -220,7 +220,7 @@ for xl, xr, color in [
     ax2.axvspan(xl, min(xr, lam_zoom.max()), alpha=0.55, color=color, zorder=0)
 
 ax2.plot(lam_zoom, compute_eta_vec(lam_zoom),
-         color='#2980b9', lw=2.5, zorder=5, label=r'$\eta(\lambda)$')
+         color='#2980b9', lw=2.5, zorder=5, label=r'$\eta(\alpha)$')
 ax2.axhline(OPT_ETA, ls=':', color='#2980b9', lw=1.2, alpha=0.6)
 
 ax2r.plot(lam_zoom, eps_cold(lam_zoom), color='#e74c3c', lw=2.0, ls='--',
@@ -232,16 +232,16 @@ for thresh, ls in [(0.01, ':'), (0.10, '--'), (0.30, '-')]:
     ax2r.axhline(thresh, ls=ls, color='gray', lw=1.3, alpha=0.8)
 
 for lam_cut, label, color in [
-    (lam_1pct,  rf'$\lambda_{{1\%}}={lam_1pct:.3f}$',  '#27ae60'),
-    (lam_10pct, rf'$\lambda_{{10\%}}={lam_10pct:.3f}$','#e67e22'),
+    (lam_1pct,  rf'$\alpha_{{1\%}}={lam_1pct:.3f}$',  '#27ae60'),
+    (lam_10pct, rf'$\alpha_{{10\%}}={lam_10pct:.3f}$','#e67e22'),
 ]:
     ax2.axvline(lam_cut, ls=':', color=color, lw=1.5)
     ax2.text(lam_cut + lam_zoom.max()*0.015, 0.005, label,
              color=color, fontsize=8.5, va='bottom', rotation=90)
 
-ax2.set_xlabel(r'$\lambda$ (anharmonicity)', fontsize=13)
+ax2.set_xlabel(r'$\alpha$ (anharmonicity)', fontsize=13)
 ax2.set_ylabel(r'$\eta$ (efficiency)', fontsize=13, color='#2980b9')
-ax2r.set_ylabel(r'$\varepsilon(\lambda)$', fontsize=12, color='#7f8c8d')
+ax2r.set_ylabel(r'$\varepsilon(\alpha)$', fontsize=12, color='#7f8c8d')
 ax2.set_xlim(0, lam_zoom.max())
 ax2.set_ylim(bottom=0)
 ax2r.set_ylim(bottom=0)

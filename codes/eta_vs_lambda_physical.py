@@ -69,7 +69,7 @@ ax.axhline(eta0_harmonic, ls=':', color='#8e44ad', lw=1.2, alpha=0.5)
 
 # ── Physical cap ──────────────────────────────────────────────────────────────
 ax.axvline(0.2, color='#c0392b', lw=1.8, ls='--',
-           label=r'Physical cap $\lambda_\mathrm{max}=0.2$')
+           label=r'Physical cap $\alpha_\mathrm{max}=0.2$')
 
 # ── Annotate η drop ───────────────────────────────────────────────────────────
 eta_at_02 = float(eta_vs_lam(bc, bh, wc, wh, np.array([0.2]))[0])
@@ -82,12 +82,12 @@ ax.annotate(
 )
 
 # ── Labels ────────────────────────────────────────────────────────────────────
-ax.set_xlabel(r'Anharmonicity parameter $\lambda$', fontsize=14)
+ax.set_xlabel(r'Anharmonicity parameter $\alpha$', fontsize=14)
 ax.set_ylabel(r'Efficiency $\eta$', fontsize=14)
 ax.set_title(
-    r'$\eta(\lambda)$: Efficiency vs. Anharmonicity'
+    r'$\eta(\alpha)$: Efficiency vs. Anharmonicity'
     '\n'
-    r'(physical region $\lambda \in [0,\;0.2]$)',
+    r'(physical region $\alpha \in [0,\;0.2]$)',
     fontsize=13, pad=10
 )
 ax.set_xlim(0.0, 0.205)

@@ -106,11 +106,11 @@ fig.suptitle(r'Work–Efficiency Tradeoff in Feasible Space'
 # Panel 1: η vs W_ext, coloured by λ
 ax = axes[0]
 sc = ax.scatter(works, etas, c=lams, cmap='viridis', s=4, alpha=0.4, vmin=0, vmax=LAM_MAX)
-plt.colorbar(sc, ax=ax, label=r'$\lambda$ (anharmonicity)')
+plt.colorbar(sc, ax=ax, label=r'$\alpha$ (anharmonicity)')
 ax.axhline(THRESHOLD, ls='--', color='red', lw=1.5, label=f'η threshold = {THRESHOLD}')
 ax.set_xlabel(r'$W_\mathrm{ext}$ (extracted work, arb. units)', fontsize=12)
 ax.set_ylabel(r'$\eta$ (efficiency)', fontsize=12)
-ax.set_title(r'$\eta$ vs $W_\mathrm{ext}$, coloured by $\lambda$', fontsize=11)
+ax.set_title(r'$\eta$ vs $W_\mathrm{ext}$, coloured by $\alpha$', fontsize=11)
 ax.legend(fontsize=9); ax.grid(alpha=0.3)
 
 # Panel 2: Zoomed — top η>0.75 samples, coloured by ωh/ωc ratio usage
@@ -242,9 +242,9 @@ plt.colorbar(sc, ax=ax2, label=r'$\eta$')
 ax2.axhline(0.10, ls='--', color='red', lw=2, label=r'$\delta = 0.10$ threshold')
 ax2.axvline(LAM_MAX, ls=':', color='purple', lw=1.5,
             label=f'λ cap = {LAM_MAX}')
-ax2.set_xlabel(r'$\lambda$ (anharmonicity parameter)', fontsize=12)
+ax2.set_xlabel(r'$\alpha$ (anharmonicity parameter)', fontsize=12)
 ax2.set_ylabel(r'$\delta$ (perturbation ratio)', fontsize=12)
-ax2.set_title(r'$\delta$ vs $\lambda$ coloured by $\eta$', fontsize=11)
+ax2.set_title(r'$\delta$ vs $\alpha$ coloured by $\eta$', fontsize=11)
 ax2.legend(fontsize=9); ax2.grid(alpha=0.35)
 
 plt.tight_layout()

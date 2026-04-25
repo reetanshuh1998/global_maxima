@@ -279,10 +279,10 @@ pts = np.array(pts); bc,bh,wc,wh,lam,et = pts.T
 
 fig, axes = plt.subplots(1,3,figsize=(15,5))
 fig.suptitle(f'Feasible Parameter Space (Constrained Domain)\n'
-             rf'$\omega_h/\omega_c \leq {R_OMEGA}$,  $\beta_c/\beta_h \leq {R_BETA}$,  $\lambda \leq {LAM_MAX}$',fontsize=12)
+             rf'$\omega_h/\omega_c \leq {R_OMEGA}$,  $\beta_c/\beta_h \leq {R_BETA}$,  $\alpha \leq {LAM_MAX}$',fontsize=12)
 for ax, (x,y,xl,yl) in zip(axes,[(wh/wc,et,r'$\omega_h/\omega_c$',r'$\eta$'),
                                    (bc/bh,et,r'$\beta_c/\beta_h$', r'$\eta$'),
-                                   (lam,  et,r'$\lambda$',         r'$\eta$')]):
+                                   (lam,  et,r'$\alpha$',         r'$\eta$')]):
     sc=ax.scatter(x,y,c=et,cmap='plasma',s=6,alpha=0.5,vmin=0,vmax=1)
     ax.set_xlabel(xl,fontsize=12); ax.set_ylabel(yl,fontsize=12); ax.grid(alpha=0.3)
     plt.colorbar(sc,ax=ax,label='η')

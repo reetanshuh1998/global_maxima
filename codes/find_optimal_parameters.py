@@ -170,7 +170,7 @@ ax.tick_params(axis='x', labelsize=8)
 
 # Panel 2: optimal parameter radar-style bar chart
 ax2 = axes[1]
-param_names = [r'$\beta_c$', r'$\beta_h$', r'$\omega_c$', r'$\omega_h$', r'$\lambda$']
+param_names = [r'$\beta_c$', r'$\beta_h$', r'$\omega_c$', r'$\omega_h$', r'$\alpha$']
 x   = np.arange(len(param_names))
 w   = 0.18
 for i, (name, cfg) in enumerate(PLATFORMS.items()):
