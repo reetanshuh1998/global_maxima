@@ -72,7 +72,7 @@ def compute_eta(bc, bh, wc, wh, lam):
 LAM_MAX    = 0.20
 LAM_VALUES = [0.00, 0.05, 0.10, 0.15, 0.20]
 LAM_COLORS = ['#2c3e50', '#2980b9', '#27ae60', '#e67e22', '#c0392b']
-LAM_LABELS = [rf'$\lambda={v}$' for v in LAM_VALUES]
+LAM_LABELS = [rf'$\alpha={v}$' for v in LAM_VALUES]
 
 N_POINTS = 500
 

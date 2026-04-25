@@ -106,7 +106,7 @@ def eta_safe(params):
 # Parameter box bounds  [bc, bh, wc, wh, lam]
 LO = np.array([0.5,  0.05, 0.3, 1.0, 0.0])
 HI = np.array([30.0, 15.0, 8.0, 30.0, LAM_MAX])
-PARAM_NAMES = [r'$\beta_c$', r'$\beta_h$', r'$\omega_c$', r'$\omega_h$', r'$\lambda$']
+PARAM_NAMES = [r'$\beta_c$', r'$\beta_h$', r'$\omega_c$', r'$\omega_h$', r'$\alpha$']
 
 def sample_feasible(rng, n_try=20000):
     for _ in range(n_try):
@@ -533,9 +533,9 @@ fig.suptitle(
 param_pairs = [
     (3, 2, r'$\omega_h$', r'$\omega_c$'),   # wh vs wc
     (0, 1, r'$\beta_c$',  r'$\beta_h$'),    # bc vs bh
-    (4, 2, r'$\lambda$',  r'$\omega_c$'),   # lam vs wc
+    (4, 2, r'$\alpha$',  r'$\omega_c$'),   # lam vs wc
     (3, 0, r'$\omega_h$', r'$\beta_c$'),    # wh vs bc
-    (4, 0, r'$\lambda$',  r'$\beta_c$'),    # lam vs bc
+    (4, 0, r'$\alpha$',  r'$\beta_c$'),    # lam vs bc
     (3, 1, r'$\omega_h$', r'$\beta_h$'),    # wh vs bh
 ]
 for ax, (xi, yi, xl, yl) in zip(axes.flat, param_pairs):
@@ -599,7 +599,7 @@ C_ORANGE = '#fdebd0'; C_RED    = '#fadbd8'
 
 fig, axes_lam = plt.subplots(1, 2, figsize=(15, 6))
 fig.suptitle(
-    rf'$\eta(\lambda)$ with Perturbation Validity Overlay'
+    rf'$\eta(\alpha)$ with Perturbation Validity Overlay'
     '\n(Other parameters fixed at global optimum: '
     rf'$\beta_c={REF_BC:.2f}$, $\beta_h={REF_BH:.3f}$, '
     rf'$\omega_c={REF_WC:.3f}$, $\omega_h={REF_WH:.3f}$)',
@@ -625,7 +625,7 @@ for ax_l, zoom, title_sfx in [
         ax_l.axvspan(xl, min(xr, lam_plot.max()), alpha=0.5, color=color, zorder=0)
 
     ax_l.plot(lam_plot, eta_plot, color='#2980b9', lw=2.5, zorder=5,
-               label=r'$\eta(\lambda)$')
+               label=r'$\eta(\alpha)$')
     ax_l.axhline(1-1/R_OMEGA, ls=':', color='#2980b9', lw=1.2, alpha=0.7,
                   label=rf'$\eta_0 = {1-1/R_OMEGA:.4f}$')
 
@@ -637,19 +637,19 @@ for ax_l, zoom, title_sfx in [
         ax_r.axhline(thresh, ls=ls, color='gray', lw=1.2, alpha=0.8)
 
     for lam_c, label, color in [
-        (lam_1pct,  rf'$\lambda_{{1\%}}={lam_1pct:.3f}$',  '#27ae60'),
-        (lam_10pct, rf'$\lambda_{{10\%}}={lam_10pct:.3f}$', '#e67e22'),
-        (lam_30pct, rf'$\lambda_{{30\%}}={lam_30pct:.3f}$', '#c0392b'),
+        (lam_1pct,  rf'$\alpha_{{1\%}}={lam_1pct:.3f}$',  '#27ae60'),
+        (lam_10pct, rf'$\alpha_{{10\%}}={lam_10pct:.3f}$', '#e67e22'),
+        (lam_30pct, rf'$\alpha_{{30\%}}={lam_30pct:.3f}$', '#c0392b'),
     ]:
         if lam_c <= lam_plot.max():
             ax_l.axvline(lam_c, ls=':', color=color, lw=1.4)
             ax_l.text(lam_c + 0.001, 0.01, label, color=color,
                        fontsize=8, rotation=90, va='bottom')
 
-    ax_l.set_xlabel(r'$\lambda$ (anharmonicity)', fontsize=12)
+    ax_l.set_xlabel(r'$\alpha$ (anharmonicity)', fontsize=12)
     ax_l.set_ylabel(r'$\eta$ (efficiency)', fontsize=12, color='#2980b9')
     ax_r.set_ylabel(
-        r'$\varepsilon = \frac{3\lambda}{4\omega^3}\coth\!\left(\frac{\beta\omega}{2}\right)$',
+        r'$\varepsilon = \frac{3\alpha}{4\omega^3}\coth\!\left(\frac{\beta\omega}{2}\right)$',
         fontsize=11, color='#7f8c8d'
     )
     ax_l.set_xlim(0, lam_plot.max()); ax_l.set_ylim(bottom=0)
@@ -752,7 +752,7 @@ for name in MNAMES:
         lam_best.append(0); ec_best.append(0); eta_at_best.append(0)
 x_pos = np.arange(len(MNAMES))
 ax.bar(x_pos - 0.2, lam_best, 0.35, color=[COLORS[n] for n in MNAMES],
-       edgecolor='k', linewidth=0.8, alpha=0.88, label=r'$\lambda^*$ (best solution)')
+       edgecolor='k', linewidth=0.8, alpha=0.88, label=r'$\alpha^*$ (best solution)')
 ax2_twin = ax.twinx()
 ax2_twin.bar(x_pos + 0.2, ec_best, 0.35, color=[COLORS[n] for n in MNAMES],
              edgecolor='k', linewidth=0.8, alpha=0.45, hatch='//',
@@ -760,7 +760,7 @@ ax2_twin.bar(x_pos + 0.2, ec_best, 0.35, color=[COLORS[n] for n in MNAMES],
 ax2_twin.axhline(0.10, ls='--', color='orange', lw=1.5, label='ε=0.10')
 ax2_twin.axhline(0.30, ls='--', color='red', lw=1.2, label='ε=0.30')
 ax.set_xticks(x_pos); ax.set_xticklabels(MNAMES, fontsize=10)
-ax.set_ylabel(r'$\lambda^*$ at best solution', fontsize=11)
+ax.set_ylabel(r'$\alpha^*$ at best solution', fontsize=11)
 ax2_twin.set_ylabel(r'$\varepsilon_\mathrm{cold}$ (perturbation validity)', fontsize=10)
 ax.set_title('Physical Quality of Best Solution', fontsize=11)
 ax.legend(fontsize=8, loc='upper left')
