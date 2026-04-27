@@ -47,57 +47,68 @@ def eta_vs_lam(bc, bh, wc, wh, lam_arr):
 LAMS = np.linspace(0.0, 0.2, 600)
 eta  = eta_vs_lam(bc, bh, wc, wh, LAMS)
 
-# ── Plot styling ──────────────────────────────────────────────────────────────
+# ── Plot styling (PRD Style) ──────────────────────────────────────────────────
 plt.rcParams.update({
-    'font.family': 'serif', 'font.size': 13,
-    'axes.linewidth': 1.3,
-    'axes.grid': True, 'grid.alpha': 0.25, 'grid.linestyle': '--',
-    'figure.dpi': 150,
+    'font.family': 'serif',
+    'font.serif': ['Times', 'Times New Roman', 'DejaVu Serif'],
+    'mathtext.fontset': 'stix',
+    'font.size': 11,
+    'axes.labelsize': 12,
+    'axes.linewidth': 1.0,
+    'xtick.labelsize': 10,
+    'ytick.labelsize': 10,
+    'legend.fontsize': 9,
+    'axes.grid': True,
+    'grid.alpha': 0.2,
+    'grid.linestyle': '--',
+    'figure.dpi': 300,
+    'savefig.dpi': 300,
 })
 
-fig, ax = plt.subplots(figsize=(8, 5.5))
+fig, ax = plt.subplots(figsize=(5, 3.8))
 
 # ── Main curve ─────────────────────────────────────────────────────────────────
 label = (rf'$\beta_c={bc:.2f},\;\beta_h={bh:.2f},$'
          rf'$\;\omega_c={wc:.3f},\;\omega_h={wh:.3f}$')
-ax.plot(LAMS, eta, color='#8e44ad', lw=2.5, label=label)
+ax.plot(LAMS, eta, color='#8e44ad', lw=2.0, label=label)
 
 # ── Harmonic limit dot ─────────────────────────────────────────────────────────
-ax.plot(0.0, eta0_harmonic, 'o', color='#8e44ad', ms=8, zorder=5,
+ax.plot(0.0, eta0_harmonic, 'o', color='#8e44ad', ms=6, zorder=5,
         label=rf'Harmonic limit $\eta_0 = {eta0_harmonic:.4f}$')
-ax.axhline(eta0_harmonic, ls=':', color='#8e44ad', lw=1.2, alpha=0.5)
+ax.axhline(eta0_harmonic, ls=':', color='#8e44ad', lw=1.0, alpha=0.5)
 
 # ── Physical cap ──────────────────────────────────────────────────────────────
-ax.axvline(0.2, color='#c0392b', lw=1.8, ls='--',
+ax.axvline(0.2, color='#c0392b', lw=1.5, ls='--',
            label=r'Physical cap $\alpha_\mathrm{max}=0.2$')
 
 # ── Annotate η drop ───────────────────────────────────────────────────────────
 eta_at_02 = float(eta_vs_lam(bc, bh, wc, wh, np.array([0.2]))[0])
 drop_pct   = (eta0_harmonic - eta_at_02) / eta0_harmonic * 100
-ax.annotate(
-    rf'$\Delta\eta = {eta0_harmonic - eta_at_02:.4f}$ ({drop_pct:.1f}% drop)',
-    xy=(0.2, eta_at_02), xytext=(0.13, eta_at_02 + 0.04),
-    arrowprops=dict(arrowstyle='->', color='#2c3e50', lw=1.3),
-    fontsize=10.5, color='#2c3e50'
-)
+# Positioned at the center of the plot
+ax.text(0.5, 0.5, 
+        rf'$\Delta\eta = {eta0_harmonic - eta_at_02:.4f}$ ({drop_pct:.1f}% drop)',
+        transform=ax.transAxes, fontsize=11, color='#2c3e50',
+        bbox=dict(facecolor='white', alpha=0.8, edgecolor='none', boxstyle='round,pad=0.3'),
+        ha='center', va='center')
 
 # ── Labels ────────────────────────────────────────────────────────────────────
-ax.set_xlabel(r'Anharmonicity parameter $\alpha$', fontsize=14)
-ax.set_ylabel(r'Efficiency $\eta$', fontsize=14)
-ax.set_title(
-    r'$\eta(\alpha)$: Efficiency vs. Anharmonicity'
-    '\n'
-    r'(physical region $\alpha \in [0,\;0.2]$)',
-    fontsize=13, pad=10
-)
+ax.set_xlabel(r'$\alpha$', fontsize=13)
+ax.set_ylabel(r'Efficiency', fontsize=13)
+
 ax.set_xlim(0.0, 0.205)
 ax.set_ylim(bottom=0.0)
-ax.legend(fontsize=10, loc='lower left', framealpha=0.95)
+ax.legend(fontsize=9, loc='lower left', framealpha=0.9)
 
 fig.tight_layout()
-out = os.path.join(PDIR, 'eta_vs_lambda_physical.png')
-fig.savefig(out, dpi=200, bbox_inches='tight')
+out_png = os.path.join(PDIR, 'eta_vs_lambda_physical.png')
+out_pdf = os.path.join(PDIR, 'eta_vs_lambda_physical.pdf')
+
+fig.savefig(out_png, bbox_inches='tight')
+fig.savefig(out_pdf, bbox_inches='tight')
 plt.close(fig)
-print(f"Saved → {out}")
+
+print(f"Saved → {out_png}")
+print(f"Saved → {out_pdf}")
 print(f"η at λ=0.0: {eta0_harmonic:.6f}")
 print(f"η at λ=0.2: {eta_at_02:.6f}  (drop = {drop_pct:.1f}%)")
+
