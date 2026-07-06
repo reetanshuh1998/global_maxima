@@ -11,13 +11,13 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PLOTS_DIR = os.path.join(SCRIPT_DIR, 'plots')
 os.makedirs(PLOTS_DIR, exist_ok=True)
 
-# Clean old plots
-print("Cleaning old plots...")
-for filename in os.listdir(PLOTS_DIR):
+# Clean old plots for this script only
+print("Cleaning old plots for efficiency envelope...")
+for filename in ["eta_vs_alpha_all_cases.png", "eta_vs_alpha_all_cases.pdf"]:
     file_path = os.path.join(PLOTS_DIR, filename)
     if os.path.isfile(file_path):
         os.remove(file_path)
-        print(f"  Removed: {filename}")
+        print(f"  Removed old efficiency plot: {filename}")
 
 BOUNDS_4D = BOUNDS[:4]
 
@@ -165,7 +165,7 @@ ax.axhline(1 - 1/R_OMEGA_MAX, color='#e74c3c', linestyle=':', lw=1.2, alpha=0.8,
 
 ax.set_xlabel(r"Anharmonicity Parameter $\alpha$")
 ax.set_ylabel(r"Maximum Achievable Efficiency $\eta_{\mathrm{max}}$")
-ax.set_title(r"Otto Cycle Efficiency: Comparison of All Parameter Configurations", pad=12)
+# ax.set_title(r"Otto Cycle Efficiency: Comparison of All Parameter Configurations", pad=12)
 ax.set_xlim(0.0, 0.2)
 ax.set_ylim(0.15, 0.90)
 
@@ -184,5 +184,6 @@ for case_id, cfg in results.items():
 
 out_path = os.path.join(PLOTS_DIR, "eta_vs_alpha_all_cases.png")
 plt.savefig(out_path, dpi=300, bbox_inches='tight')
+plt.savefig(out_path.replace(".png", ".pdf"), dpi=300, bbox_inches='tight')
 plt.close()
-print(f"\nSaved: {out_path}")
+print(f"\nSaved: {out_path} and PDF version.")

@@ -156,10 +156,10 @@ for i, case_id in enumerate([1, 2, 3, 4]):
     ax.bar(x + offset, cfg["works"], width, label=cfg["label"], color=cfg["color"],
            alpha=0.9, edgecolor='black', linewidth=0.6)
 
-# Set labels and title
+# Set labels
 ax.set_xlabel(r"Anharmonicity Parameter $\alpha$")
 ax.set_ylabel(r"Work Output $W_{\mathrm{ext}} = Q_h + Q_c$")
-ax.set_title("Otto Cycle Work Output: Comparison of All Parameter Configurations", pad=12)
+# ax.set_title("Otto Cycle Work Output: Comparison of All Parameter Configurations", pad=12)
 ax.set_xticks(x)
 ax.set_xticklabels([f"{a:.2f}" for a in alphas])
 
@@ -168,5 +168,6 @@ ax.legend(bbox_to_anchor=(1.02, 1.0), loc="upper left", framealpha=0.9, fontsize
 
 out_path = os.path.join(PLOTS_DIR, "work_vs_alpha_all_cases.png")
 plt.savefig(out_path, dpi=300, bbox_inches='tight')
+plt.savefig(out_path.replace(".png", ".pdf"), dpi=300, bbox_inches='tight')
 plt.close()
-print(f"\nSaved: {out_path}")
+print(f"\nSaved: {out_path} and PDF version.")

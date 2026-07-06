@@ -184,5 +184,6 @@ plt.subplots_adjust(bottom=0.06, hspace=0.22, wspace=0.22)
 
 out_path = os.path.join(PLOTS_DIR, "work_vs_wc_grid_overlay.png")
 plt.savefig(out_path, dpi=300, bbox_inches='tight')
+plt.savefig(out_path.replace(".png", ".pdf"), dpi=300, bbox_inches='tight')
 plt.close()
-print(f"\nSaved grid overlay plot to: {out_path}")
+print(f"\nSaved grid overlay plot to: {out_path} and PDF version.")

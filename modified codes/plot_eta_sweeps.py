@@ -181,6 +181,7 @@ def make_panel_plot(sweep_var, get_params_func, x_limits, y_limits, x_label, fil
     
     out_path = os.path.join(PLOTS_DIR, file_name)
     plt.savefig(out_path, dpi=300, bbox_inches='tight')
+    plt.savefig(out_path.replace(".png", ".pdf"), dpi=300, bbox_inches='tight')
     plt.close()
     print(f"Saved: {out_path}")
 

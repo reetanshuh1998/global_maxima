@@ -105,8 +105,9 @@ def plot_comparison():
     plt.tight_layout()
     out_path = os.path.join(PLOTS_DIR, 'reproduction_comparison.png')
     plt.savefig(out_path, dpi=300)
+    plt.savefig(out_path.replace(".png", ".pdf"), dpi=300)
     plt.close()
-    print(f"Saved comparison plot to: {out_path}")
+    print(f"Saved comparison plot to: {out_path} and PDF version.")
 
 if __name__ == '__main__':
     plot_comparison()

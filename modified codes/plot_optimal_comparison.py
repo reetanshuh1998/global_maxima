@@ -12,14 +12,14 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PLOTS_DIR = os.path.join(SCRIPT_DIR, 'plots')
 os.makedirs(PLOTS_DIR, exist_ok=True)
 
-# 1. Remove all old files in plots directory to avoid wrong plots
-print("Cleaning old plots...")
-for filename in os.listdir(PLOTS_DIR):
+# 1. Remove old files for this script only (not other scripts' plots)
+print("Cleaning old plots for comparison...")
+for filename in ["cop_vs_alpha_optimized_overlay.png", "cop_vs_alpha_optimized_overlay.pdf"]:
     file_path = os.path.join(PLOTS_DIR, filename)
     try:
         if os.path.isfile(file_path):
             os.remove(file_path)
-            print(f"Removed old plot: {file_path}")
+            print(f"Removed old comparison plot: {file_path}")
     except Exception as e:
         print(f"Error removing {file_path}: {e}")
 
@@ -132,7 +132,7 @@ ax.axhline(1 - 1/R_OMEGA_MAX, color='#e74c3c', linestyle=':', alpha=0.8, label=r
 
 ax.set_xlabel(r"Anharmonicity Parameter $\alpha$ (lambda)")
 ax.set_ylabel(r"Maximum Achievable Efficiency $\eta_{\mathrm{max}}$")
-ax.set_title("Otto Cycle Maximum Efficiency Envelope Comparison", pad=10)
+# ax.set_title("Otto Cycle Maximum Efficiency Envelope Comparison", pad=10)
 ax.set_xlim(0.0, 0.2)
 ax.set_ylim(0.48, 0.88)
 ax.legend(loc="lower left", framealpha=0.9, fontsize=9)
@@ -140,5 +140,6 @@ ax.legend(loc="lower left", framealpha=0.9, fontsize=9)
 plt.tight_layout()
 overlay_path = os.path.join(PLOTS_DIR, "cop_vs_alpha_optimized_overlay.png")
 plt.savefig(overlay_path, dpi=300)
+plt.savefig(overlay_path.replace(".png", ".pdf"), dpi=300)
 plt.close()
-print(f"\nSaved direct overlay comparison to: {overlay_path}")
+print(f"\nSaved direct overlay comparison to: {overlay_path} and PDF version.")
