@@ -1,0 +1,112 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{hyperref}
+\usepackage{xcolor}
+
+\definecolor{primary}{RGB}{41, 128, 185}
+\definecolor{secondary}{RGB}{142, 68, 173}
+
+\title{\textbf{Comprehensive Physical Analysis and Constraint Mechanics of Anharmonic Quantum Otto Efficiency Plots}\\
+\large Detailed Explanation of $\eta(\eta_C)$ Behavior and Comparison with Literature (\texttt{optimal-performance.pdf})}
+\author{Anharmonic Quantum Otto Engine Study}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\tableofcontents
+\newpage
+
+\section{Introduction}
+In quantum thermodynamics, the thermal efficiency $\eta = W_{\mathrm{ext}} / Q_h$ of a quantum heat engine operating between a cold bath at inverse temperature $\beta_c = 1/(k_B T_c)$ and a hot bath at inverse temperature $\beta_h = 1/(k_B T_h)$ is fundamentally bounded by the Carnot efficiency limit:
+\begin{equation}
+\eta_C = 1 - \frac{\beta_h}{\beta_c} = 1 - \frac{T_c}{T_h}
+\end{equation}
+
+When analyzing the performance of our anharmonic spin-1 NV-center quantum Otto engine, two distinct plotting regimes emerge depending on how operating parameters are constrained:
+\begin{enumerate}
+    \item \textbf{Fixed-Frequency Baseline Regime:} Operating frequencies $(\omega_c, \omega_h)$ are held fixed at baseline values (e.g. $R_\omega = \omega_h / \omega_c = 7.0$). In this regime, engine operation ($W_{\mathrm{ext}} > 0$) occurs exclusively in the high-gradient region $\eta_C \in [0.84, 0.96]$.
+    \item \textbf{Variable / Re-optimized Frequency Regime:} Frequencies $(\omega_c, \omega_h)$ are dynamically re-optimized for each individual $\eta_C$. In this regime, the efficiency curves start at $\eta_C = 0$ and extend across the full domain $[0, 0.96]$, matching standard unconstrained literature models such as Fig.~2 of \texttt{optimal-performance.pdf}.
+\end{enumerate}
+
+---
+
+\section{Detailed Physics of Plot Set 1 and Plot Set 2}
+
+\subsection{Plot Set 1: 2x2 Grid Grouped by Case}
+In Plot Set 1 (\texttt{eta\_vs\_carnot\_grid\_by\_case.pdf}), each subplot corresponds to one specific stroke transition model (Cases 1 to 4), and contains 5 distinct curves representing different anharmonicity parameters $\alpha \in [0.00, 0.20]$:
+\begin{itemize}
+    \item \textbf{Case 1 (Symmetric, $\lambda_{ab}=\lambda_{cd}=1$):} Quantum transitions are purely adiabatic without non-adiabatic excitation losses. The efficiency curve approaches the ideal ratio $\eta = 1 - \omega_c/\omega_h = 1 - 1/7.0 \approx 0.8571$.
+    \item \textbf{Case 2 (Hot-stroke Asymmetric, $\lambda_{ab} > 1, \lambda_{cd}=1$):} Quantum friction occurs during the hot expansion stroke. Efficiency is depressed below the ideal line as friction consumes part of the work produced.
+    \item \textbf{Case 3 (Cold-stroke Asymmetric, $\lambda_{ab}=1, \lambda_{cd} > 1$):} Non-adiabatic excitation occurs during the cold compression stroke. Cold-side friction directly increases heat rejection into the cold bath, degrading efficiency more severely than hot-stroke friction.
+    \item \textbf{Case 4 (Dual Asymmetric, $\lambda_{ab} > 1, \lambda_{cd} > 1$):} Both strokes suffer from non-adiabatic excitation losses, leading to the lowest efficiency across all $\alpha$.
+\end{itemize}
+
+\subsection{Plot Set 2: 1x5 Layout Grouped by Anharmonicity $\alpha$}
+In Plot Set 2 (\texttt{eta\_vs\_carnot\_grid\_by\_alpha.pdf}), each panel isolates a specific value of anharmonicity $\alpha$. Within each panel, the four cases are overlaid together to illustrate the hierarchy of quantum friction ($\text{Case 1} > \text{Case 2} > \text{Case 3} > \text{Case 4}$).
+
+---
+
+\section{Why Fixed-Frequency Plots Are Restricted to $\eta_C \in [0.84, 0.96]$}
+
+\subsection{1. Lower Bound Threshold ($\eta_C > 1 - 1/R_\omega$)}
+For a quantum engine to produce positive net work ($W_{\mathrm{ext}} > 0$), the ratio of cold-to-hot inverse temperatures must exceed the frequency compression ratio:
+\begin{equation}
+\frac{\beta_c}{\beta_h} > \frac{\omega_h}{\omega_c} = R_\omega
+\end{equation}
+
+Expressing $\beta_c / \beta_h$ in terms of Carnot efficiency $\eta_C = 1 - \beta_h/\beta_c$:
+\begin{equation}
+\frac{\beta_c}{\beta_h} = \frac{1}{1 - \eta_C}
+\end{equation}
+
+Substituting into the engine condition gives:
+\begin{equation}
+\frac{1}{1 - \eta_C} > R_\omega \implies 1 - \eta_C < \frac{1}{R_\omega} \implies \eta_C > 1 - \frac{1}{R_\omega}
+\end{equation}
+
+For our NV-center system where $R_\omega = 7.0$:
+\begin{equation}
+\eta_C > 1 - \frac{1}{7.0} = \frac{6}{7} \approx 0.8571
+\end{equation}
+
+If $\eta_C < 0.8571$, the thermal gradient is too weak to overcome the $7.0\times$ frequency compression. The engine operates in reverse (as a heater or refrigerator), producing negative work ($W_{\mathrm{ext}} \le 0$). Thus, no positive-work engine curves can exist below $\eta_C \approx 0.8571$ for fixed $R_\omega = 7.0$.
+
+\subsection{2. Quantum Friction Penalty ($\lambda > 1$)}
+In Cases 2, 3, and 4, non-adiabatic transitions generate internal quantum friction ($\lambda_{ab}, \lambda_{cd} > 1$). Overcoming this non-adiabatic excitation energy requires an even larger temperature gradient ($\eta_C \ge 0.84 - 0.89$). Below this friction threshold, $W_{\mathrm{ext}} \le 0$, filtering out all points below $\eta_C \approx 0.84$.
+
+\subsection{3. Upper Bound Cap ($\eta_C \le 0.96$)}
+The upper bound is set by the diamond NV-center temperature ratio cap ($R_\beta = \beta_c / \beta_h \le 25.0$):
+\begin{equation}
+\frac{\beta_c}{\beta_h} \le 25.0 \implies \frac{1}{1 - \eta_C} \le 25.0 \implies \eta_C \le 1 - \frac{1}{25.0} = 0.96
+\end{equation}
+
+---
+
+\section{Comparison with Unconstrained Literature (\texttt{optimal-performance.pdf})}
+
+In standard theoretical literature (such as Fig.~2 of \texttt{optimal-performance.pdf}), the compression ratio $R_\omega = \omega_h / \omega_c$ is \textbf{not fixed}. Instead, for every value of $\eta_C \in (0, 1)$, the frequencies $(\omega_c, \omega_h)$ are continuously re-optimized to match the temperature gradient:
+\begin{equation}
+R_\omega(\eta_C) \approx \sqrt{\frac{\beta_c}{\beta_h}} = \frac{1}{\sqrt{1 - \eta_C}}
+\end{equation}
+
+As $\eta_C \to 0$ ($\beta_h \to \beta_c$), the optimal compression ratio scales down toward $R_\omega \to 1.0$. As a result:
+\begin{itemize}
+    \item The condition $\frac{\beta_c}{\beta_h} > R_\omega$ is satisfied for \textbf{all} $\eta_C \in (0, 1)$.
+    \item The efficiency curve traces the Carnot line $\eta_C$ continuously from $\eta_C = 0$ up to $0.8571$, where it hits the compression ratio cap $R_\omega \le 7.0$ and plateaus.
+    \item Non-ideal cases (Cases 2, 3, 4) extend continuously down to $\eta_C \approx 0.35 - 0.47$, yielding smooth curves starting near the origin, exactly as seen in Fig.~2 of \texttt{optimal-performance.pdf}.
+\end{itemize}
+
+---
+
+\section{Conclusion and Recommendations for Paper Presentation}
+\begin{enumerate}
+    \item \textbf{Use Fixed-Frequency Active Region ($\eta_C \in [0.80, 1.00]$):} When showcasing performance under fixed operational frequencies ($R_\omega = 7.0$), set the $x$-axis range to $[0.80, 1.00]$ to clearly resolve the curves.
+    \item \textbf{Use Full-Range Re-optimized Plot ($\eta_C \in [0, 1.0]$):} When comparing against standard literature (such as \texttt{optimal-performance.pdf}), use the re-optimized frequency curves where Case 1 tracks $\eta_C$ from $0$ to $0.857$ and plateaus.
+\end{enumerate}
+
+\end{document}
