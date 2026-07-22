@@ -1,0 +1,94 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{caption}
+
+\title{\textbf{Optimal Parameters for Maximum Achievable Efficiency}\\
+\large Companion Parameter Tables for Figure: \texttt{eta\_vs\_alpha\_all\_cases.pdf}}
+\author{Anharmonic Quantum Otto Engine Study}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section*{Overview}
+This document provides the complete set of optimized parameter values $(\beta_c, \beta_h, \omega_c, \omega_h)$, maximum achievable efficiency $\eta_{\mathrm{max}}$, and corresponding work output $W_{\mathrm{ext}}$ for each configuration (Case 1 to Case 4) as a function of the anharmonicity parameter $\alpha \in [0.00, 0.20]$. These parameter values correspond directly to the curves plotted in \texttt{eta\_vs\_alpha\_all\_cases.pdf}.
+
+\subsection*{Physical Constraints Enforced}
+All optimizations enforce strict thermodynamic and platform boundaries:
+\begin{enumerate}
+    \item \textbf{Platform Ratio Caps:} $\frac{\omega_h}{\omega_c} \le 7.0$ and $\frac{\beta_c}{\beta_h} \le 25.0$ (based on diamond NV-centre platform caps).
+    \item \textbf{Perturbation Validity:} $\varepsilon_c \le 0.10$ and $\varepsilon_h \le 0.10$, where $\varepsilon = \frac{3 \alpha \coth(\beta \omega / 2)}{4 \omega^3}$.
+    \item \textbf{Engine Operation Condition:} $\beta_c \omega_c > \beta_h \omega_h$ and $W_{\mathrm{ext}} > 0$.
+\end{enumerate}
+
+\section*{1. Case 1: Symmetric Coupling ($\lambda_{ab} = \lambda_{cd} = 1$)}
+\begin{table}[h!]
+\centering
+\caption{Optimized parameters for Case 1 ($\lambda_{ab}=\lambda_{cd}=1$).}
+\begin{tabular}{ccccccc}
+\toprule
+\textbf{Anharmonicity $\alpha$} & $\beta_c$ & $\beta_h$ & $\omega_c$ & $\omega_h$ & \textbf{Max Efficiency $\eta_{\mathrm{max}}$} & \textbf{Work $W_{\mathrm{ext}}$} \\
+\midrule
+0.00 & 9.1223 & 0.6338 & 1.5789 & 11.0524 & \textbf{0.857143} & 0.008601 \\
+0.05 & 9.1223 & 0.6338 & 1.5789 & 11.0524 & \textbf{0.856057} & 0.008573 \\
+0.10 & 9.1223 & 0.6338 & 1.5789 & 11.0524 & \textbf{0.854972} & 0.008544 \\
+0.15 & 9.1223 & 0.6338 & 1.5789 & 11.0524 & \textbf{0.853886} & 0.008516 \\
+0.20 & 9.1223 & 0.6338 & 1.5789 & 11.0524 & \textbf{0.852800} & 0.008488 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section*{2. Case 2: Asymmetric Hot Stroke ($\lambda_{ab} = f(\omega), \lambda_{cd} = 1$)}
+\begin{table}[h!]
+\centering
+\caption{Optimized parameters for Case 2 ($\lambda_{ab}=f(\omega), \lambda_{cd}=1$).}
+\begin{tabular}{ccccccc}
+\toprule
+\textbf{Anharmonicity $\alpha$} & $\beta_c$ & $\beta_h$ & $\omega_c$ & $\omega_h$ & \textbf{Max Efficiency $\eta_{\mathrm{max}}$} & \textbf{Work $W_{\mathrm{ext}}$} \\
+\midrule
+0.00 & 2.5000 & 0.1000 & 1.0000 & 3.6001 & \textbf{0.629889} & 3.775108 \\
+0.05 & 2.5000 & 0.1000 & 1.3106 & 4.4104 & \textbf{0.565322} & 3.292993 \\
+0.10 & 2.5000 & 0.1000 & 1.5396 & 4.8929 & \textbf{0.537954} & 3.101196 \\
+0.15 & 2.5000 & 0.1000 & 1.7008 & 5.2009 & \textbf{0.519848} & 2.975815 \\
+0.20 & 2.5000 & 0.1000 & 1.8298 & 5.4329 & \textbf{0.506088} & 2.880982 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section*{3. Case 3: Asymmetric Cold Stroke ($\lambda_{ab} = 1, \lambda_{cd} = f(\omega)$)}
+\begin{table}[h!]
+\centering
+\caption{Optimized parameters for Case 3 ($\lambda_{ab}=1, \lambda_{cd}=f(\omega)$).}
+\begin{tabular}{ccccccc}
+\toprule
+\textbf{Anharmonicity $\alpha$} & $\beta_c$ & $\beta_h$ & $\omega_c$ & $\omega_h$ & \textbf{Max Efficiency $\eta_{\mathrm{max}}$} & \textbf{Work $W_{\mathrm{ext}}$} \\
+\midrule
+0.00 & 2.5000 & 0.1000 & 1.0000 & 3.0568 & \textbf{0.397207} & 3.287285 \\
+0.05 & 2.5000 & 0.1000 & 1.7900 & 4.8024 & \textbf{0.349186} & 2.705745 \\
+0.10 & 2.5000 & 0.1000 & 2.1002 & 5.3378 & \textbf{0.335188} & 2.533113 \\
+0.15 & 2.5000 & 0.1000 & 2.3134 & 5.6805 & \textbf{0.326132} & 2.423390 \\
+0.20 & 2.5000 & 0.1000 & 2.4810 & 5.9389 & \textbf{0.319325} & 2.341971 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section*{4. Case 4: Dual Asymmetric Strokes ($\lambda_{ab} = f(\omega), \lambda_{cd} = f(\omega)$)}
+\begin{table}[h!]
+\centering
+\caption{Optimized parameters for Case 4 ($\lambda_{ab}=\lambda_{cd}=f(\omega)$).}
+\begin{tabular}{ccccccc}
+\toprule
+\textbf{Anharmonicity $\alpha$} & $\beta_c$ & $\beta_h$ & $\omega_c$ & $\omega_h$ & \textbf{Max Efficiency $\eta_{\mathrm{max}}$} & \textbf{Work $W_{\mathrm{ext}}$} \\
+\midrule
+0.00 & 2.5000 & 0.1000 & 1.0000 & 2.2581 & \textbf{0.343051} & 2.828437 \\
+0.05 & 2.5000 & 0.1000 & 1.8673 & 3.7290 & \textbf{0.284554} & 2.214085 \\
+0.10 & 2.5000 & 0.1000 & 2.1961 & 4.2017 & \textbf{0.269055} & 2.048489 \\
+0.15 & 2.5000 & 0.1000 & 2.4212 & 4.5102 & \textbf{0.259288} & 1.945551 \\
+0.20 & 2.5000 & 0.1000 & 2.5983 & 4.7458 & \textbf{0.252073} & 1.870182 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\end{document}
